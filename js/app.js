@@ -211,6 +211,11 @@ var app = {
 
   renderBadges: function () {
     var s = this.state, got = 0;
+    // Every badge needs a lesson in the cabinet. With no courses they cannot be earned, so hide the section.
+    var none = !COURSES.length;
+    $('#badges').hidden = none;
+    $$('a[href="#badges"]').forEach(function (a) { a.parentNode.hidden = none; });
+    if (none) return;
     $('#badge-list').innerHTML = ACHIEVEMENTS.map(function (a) {
       var date = s.achievements[a.id];
       if (date) got++;
@@ -553,7 +558,7 @@ var app = {
       self.save();
       self.render();
       $('#welcome').close();
-      if (isNew && !self.pendingStart) self.toast('👋', 'Nice to meet you, ' + name + '!', 'Start your first lesson below.');
+      if (isNew && !self.pendingStart) self.toast('👋', 'Nice to meet you, ' + name + '!', COURSES.length ? 'Start your first lesson below.' : 'Your courses are on the school site.');
       self.runPendingStart();
     });
     $('#welcome').addEventListener('cancel', function () { self.save(); self.runPendingStart(); });
