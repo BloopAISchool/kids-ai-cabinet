@@ -35,6 +35,7 @@ var app = {
 
   init: function () {
     $$('[data-site-link]').forEach(function (a) { a.href = SITE_URL; });
+    $$('[data-catalog-link]').forEach(function (a) { a.href = SITE_URL + 'courses/'; });
     $('#shapes').innerHTML = Theme.shapes();
 
     // ?start=<курс> — пришли с сайта по кнопке «Play now»
