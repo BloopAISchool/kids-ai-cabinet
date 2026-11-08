@@ -3,9 +3,9 @@
 // Общий с сайтом школы ключ: сайт создаёт профиль при входе и показывает прогресс на главной
 var STORAGE_KEY = 'bloop-cabinet-v1';
 
-// Сайт школы. На GitHub Pages это соседний репозиторий kids-ai-courses на том же домене,
-// при локальном запуске кабинет лежит в подпапке сайта — тогда сайт на уровень выше.
-var SITE_URL = location.hostname.endsWith('github.io') ? '/kids-ai-courses/' : '../';
+// Сайт школы. На GitHub Pages (bloopaischool.github.io) кабинет стоит отдельно, а сайт живёт на Cloudflare Pages;
+// внутри сайта (kids-ai-courses.pages.dev/kids-ai-cabinet/) и при локальном запуске сайт на уровень выше.
+var SITE_URL = location.hostname.endsWith('github.io') ? 'https://kids-ai-courses.pages.dev/' : '../';
 var REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // Course cards cycle three theme tokens that stay distinct on every age channel (same as the parent site)
