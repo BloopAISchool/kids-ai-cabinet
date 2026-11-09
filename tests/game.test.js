@@ -121,7 +121,7 @@ test('week XP covers 7 days ending today', () => {
 const D = require('../js/data.js');
 
 test('age groups match the school site', () => {
-  assert.deepEqual(D.AGE_GROUPS.map(g => g.id), ['6-8', '9-11', '12-14', '14-17']);
+  assert.deepEqual(D.AGE_GROUPS.map(g => g.id), ['6-8', '9-11', '12-14', '15-17']);
 });
 
 test('cabinet shows only courses whose whole age range fits the profile age', () => {

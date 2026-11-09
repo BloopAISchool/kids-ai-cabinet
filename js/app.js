@@ -85,7 +85,9 @@ var app = {
   load: function () {
     try {
       var raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? Object.assign(Game.newState(), JSON.parse(raw)) : null;
+      var st = raw ? Object.assign(Game.newState(), JSON.parse(raw)) : null;
+      if (st && st.age === '14-17') st.age = '15-17'; // старое имя последней группы
+      return st;
     } catch (e) {
       return null;
     }
