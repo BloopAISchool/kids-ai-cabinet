@@ -156,7 +156,7 @@ var app = {
     $('#courses-age-btn').hidden = !group;
 
     if (!group) {
-      $('#course-list').innerHTML = '<div class="course-empty"><p>Tell Bobik how old you are, and you’ll see the courses made for your age.</p>' +
+      $('#course-list').innerHTML = '<div class="course-empty"><p>Tell Sevi how old you are, and you’ll see the courses made for your age.</p>' +
         '<button class="btn btn--primary" type="button" data-open-welcome>Choose my age</button></div>';
       return;
     }
@@ -230,7 +230,7 @@ var app = {
     ring.style.strokeDashoffset = len * (1 - p);
     $('#daily-xp').textContent = xp;
     $('#daily-goal').textContent = '/ ' + DAILY_GOAL + ' XP';
-    $('#daily-note').textContent = p >= 1 ? 'Goal reached! Bobik is proud of you 🎉' : (DAILY_GOAL - xp) + ' XP to reach today’s goal';
+    $('#daily-note').textContent = p >= 1 ? 'Goal reached! Sevi is proud of you 🎉' : (DAILY_GOAL - xp) + ' XP to reach today’s goal';
     $('.daily').classList.toggle('is-done', p >= 1);
   },
 
@@ -289,7 +289,7 @@ var app = {
     this.state.age = keep.age;
     this.save();
     this.render();
-    this.toast('🔄', 'Progress reset', 'A fresh start with Bobik!');
+    this.toast('🔄', 'Progress reset', 'A fresh start with Sevi!');
   },
 
   // ---------- Урок ----------
