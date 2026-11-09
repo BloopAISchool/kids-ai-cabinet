@@ -9,7 +9,7 @@
     return {
       version: 1,
       name: name || 'Explorer',
-      palette: palette || 'auto', // 'auto': Bobik wears the colours of the child's age channel
+      palette: palette || 'auto', // 'auto': Sevi wears the colours of the child's age channel
       xp: 0,
       correct: 0,
       answered: 0,

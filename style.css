@@ -1,4 +1,4 @@
-/* Bloop Cabinet in the age theme of the school site. Every token is rewritten by Theme (js/theme.js) from the child's age;
+/* Sevalumo Cabinet in the age theme of the school site. Every token is rewritten by Theme (js/theme.js) from the child's age;
    these are the 6-year-old values. Colour and shape come from the age, meaning colours (right, wrong, stars) stay fixed. */
 :root {
     --age: 6;
@@ -76,7 +76,7 @@ a { color: inherit; text-underline-offset: .2em; text-decoration-thickness: 1px;
 .chip-profile span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .chip-profile__lvl { flex-shrink: 0; padding: 6px 10px; border-radius: calc(var(--rad) * .5 + 2px); background: var(--acc); color: var(--on-acc); font-size: .85rem; font-weight: 800; }
 
-/* ---------- Ident: level, Bloop and the lower third ---------- */
+/* ---------- Ident: level, Sevi and the lower third ---------- */
 .ident { position: relative; isolation: isolate; overflow: hidden; background: var(--bg); color: var(--on-bg); padding: clamp(14px, 3vw, 34px) 0 clamp(28px, 4vw, 44px); }
 .shapes { position: absolute; inset: 0 0 18% 30%; z-index: -1; pointer-events: none; }
 .shape { position: absolute; transform-origin: center; transform: rotate(var(--r, 0deg)) scale(clamp(0, calc((var(--life) - var(--age)) / 1.6), 1)); transition: transform .5s var(--ease); }

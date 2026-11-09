@@ -164,7 +164,18 @@ test('cabinet has no courses of its own', () => {
 });
 
 test('age groups match the school site', () => {
-  assert.deepEqual(AGE_GROUPS.map(g => g.id), ['6-8', '9-11', '12-14', '14-17']);
+  assert.deepEqual(AGE_GROUPS.map(g => g.id), ['6-8', '9-11', '12-14', '15-17']);
+});
+
+test('groups do not overlap: every age 6-17 is in exactly one group', () => {
+  for (let age = 6; age <= 17; age++) {
+    assert.equal(AGE_GROUPS.filter(g => g.min <= age && age <= g.max).length, 1, 'age ' + age);
+  }
+});
+
+test('migration: the old saved group id 14-17 is read as 15-17', () => {
+  assert.equal(D.findAgeGroup('14-17').id, '15-17');
+  assert.deepEqual(D.coursesForAge('14-17'), []);
 });
 
 test('every age group links to its section of the school course catalog', () => {
@@ -176,7 +187,7 @@ test('every age group links to its section of the school course catalog', () => 
 });
 
 test('with no courses, no age shows any course', () => {
-  for (const age of ['6-8', '9-11', '12-14', '14-17', '', undefined]) {
+  for (const age of ['6-8', '9-11', '12-14', '15-17', '', undefined]) {
     assert.deepEqual(D.coursesForAge(age), [], String(age));
   }
 });

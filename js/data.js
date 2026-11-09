@@ -13,12 +13,16 @@ var AGE_GROUPS = [
   { id: '9-11',  min: 9,  max: 11, name: 'Inventors',
     more: { text: 'There are no courses for ages 9-11 yet. See every course on the school site.', link: 'See all courses', href: 'courses/#age-9-11' } },
   { id: '12-14', min: 12, max: 14, name: 'Creators',
-    more: { text: 'There are no courses for ages 12-14 yet. See every course on the school site.', link: 'See all courses', href: 'courses/#age-12-14' } },
-  { id: '14-17', min: 14, max: 17, name: 'Pros',
-    more: { text: 'Your courses live on the school site: AI Starter Trail for beginners and AI Trail.', link: 'See my courses', href: 'courses/#age-14-17' } }
+    more: { text: 'Your courses live on the school site: AI Starter Trail for beginners.', link: 'See my courses', href: 'courses/#age-12-14' } },
+  { id: '15-17', min: 15, max: 17, name: 'Pros',
+    more: { text: 'Your courses live on the school site: AI Trail.', link: 'See my courses', href: 'courses/#age-15-17' } }
 ];
 
+// Старое id старшей группы ('14-17') читается как '15-17': границы групп больше не пересекаются.
+var LEGACY_AGE_IDS = { '14-17': '15-17' };
+
 function findAgeGroup(id) {
+  id = LEGACY_AGE_IDS[id] || id;
   return AGE_GROUPS.filter(function (g) { return g.id === id; })[0] || null;
 }
 

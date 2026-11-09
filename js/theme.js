@@ -1,6 +1,6 @@
 'use strict';
 
-// Age theme of Bloop AI School: the same colour stops, shapes and morphing Bloop as the parent site
+// Age theme of Sevalumo: the same colour stops, shapes and morphing Sevi as the parent site
 // (kids-ai-courses/designs/parents/channel/channel.js). Keep STOPS and paint() in sync with it.
 // 6-8 is bright and playful, 15-17 is calm and dark. The cabinet paints the middle age of the child's group.
 var Theme = (function () {
@@ -72,8 +72,8 @@ var Theme = (function () {
   }
 
   // Group id from the profile ('9-11') → the age painted: the stop of that group, so each group has one clean look
-  var GROUP_AGE = { '6-8': 7, '9-11': 10, '12-14': 13, '14-17': 16 };
-  function ageOf(groupId) { return GROUP_AGE[groupId] || 6; }
+  var GROUP_AGE = { '6-8': 7, '9-11': 10, '12-14': 13, '15-17': 16 };
+  function ageOf(groupId) { return GROUP_AGE[groupId === '14-17' ? '15-17' : groupId] || 6; } // '14-17': старое id, читается как '15-17'
 
   // Smooth travel through every age in between, so a change from 7 to 16 visibly grows up
   var ageNow = null, raf = 0;
@@ -99,7 +99,7 @@ var Theme = (function () {
     }).join('');
   }
 
-  // Bloop drawn with the theme colours (--rb-* tokens), so he changes with the age like on the parent site
+  // Sevi drawn with the theme colours (--rb-* tokens), so he changes with the age like on the parent site
   var css = document.createElement('style');
   css.textContent = CSS;
   document.head.appendChild(css);
