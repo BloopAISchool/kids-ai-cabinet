@@ -164,13 +164,13 @@ function bob(o, pal, size) {
     head += ' xmlns="http://www.w3.org/2000/svg" style="' +
       ZONES.map(function (k) { return '--rb-' + k + ':' + pal[k]; }).join(';') + '"';
   }
-  head += ' viewBox="0 -12 300 292" width="' + (size || '100%') + '" role="img" aria-label="Bobik: ' + o.id + '">';
+  head += ' viewBox="0 -12 300 292" width="' + (size || '100%') + '" role="img" aria-label="Sevi: ' + o.id + '">';
   return head + '<title>' + o.id + '</title>' + (pal ? '<style>' + CSS + '</style>' : '') + g + '</svg>';
 }
 
 function renderBobik(stateId, palette, size) {
   var st = STATES[stateId];
-  if (!st) throw new Error('Unknown Bobik state: ' + stateId);
+  if (!st) throw new Error('Unknown Sevi state: ' + stateId);
   return bob(st, palette || PALETTES.mint, size);
 }
 
