@@ -67,8 +67,6 @@ a { color: inherit; text-underline-offset: .2em; text-decoration-thickness: 1px;
 .logo { min-height: 44px; }
 /* Dot wordmark (brand/logo-dot, small variant): follows text colour, the dot keeps its own colours. Ink height 0.764em of font-size. */
 .logo__word { display: block; flex: none; width: auto; height: .764em; aspect-ratio: 4518 / 764; font-size: 32px; }
-.logo__word--foot { display: inline-block; font-size: 24px; vertical-align: middle; }
-.footer__brand { display: inline-block; vertical-align: middle; }
 .logo__bot svg { display: block; width: 100%; height: 100%; }
 .logo__text b { font-weight: 500; }
 .nav__links { display: flex; gap: 22px; margin: 0 0 0 auto; padding: 0; list-style: none; font-size: .95rem; font-weight: 600; }
@@ -366,7 +364,16 @@ a { color: inherit; text-underline-offset: .2em; text-decoration-thickness: 1px;
     .result__actions .btn { flex: 1 1 100%; }
     .toasts { right: 16px; bottom: 16px; }
 }
-@media (max-width: 420px) {
-    .logo__word { font-size: 28px; }
+/* The wordmark is wider than the old text logo: from 480px the header shows Sevi and the wordmark only */
+@media (max-width: 480px) {
+    .nav .logo__word { font-size: 28px; }
     .logo__text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+}
+/* Under 340px the profile button no longer fits beside the wordmark: Sevi alone is the mark there (the link keeps its name) */
+@media (max-width: 360px) {
+    .nav__in { gap: 10px; }
+    .nav .logo__word { font-size: 24px; }
+}
+@media (max-width: 340px) {
+    .nav .logo__word { display: none; }
 }
