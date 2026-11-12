@@ -3,9 +3,9 @@
 // Общий с сайтом школы ключ: сайт создаёт профиль при входе и показывает прогресс на главной
 var STORAGE_KEY = 'bloop-cabinet-v1';
 
-// Сайт школы. На GitHub Pages это соседний репозиторий kids-ai-courses на том же домене,
+// Сайт школы. На Cloudflare Pages кабинет лежит в /kids-ai-cabinet/ самого сайта, поэтому адрес относительный;
 // при локальном запуске кабинет лежит в подпапке сайта — тогда сайт на уровень выше.
-var SITE_URL = location.hostname.endsWith('github.io') ? '/kids-ai-courses/' : '../';
+var SITE_URL = location.hostname.endsWith('github.io') ? 'https://kids-ai-courses.pages.dev/' : '../';
 var REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // Course cards cycle three theme tokens that stay distinct on every age channel (same as the parent site)
@@ -109,7 +109,7 @@ var app = {
     var lvl = Game.levelFor(s.xp);
     var st = Game.stats(s);
 
-    $('#logo-bobik').innerHTML = this.bobik('neutral');
+    if ($('#logo-bobik')) $('#logo-bobik').innerHTML = this.bobik('neutral');
     if (!this.petting) $('#hero-bobik').innerHTML = this.bobik(st.lessonsDone ? 'joy' : 'hello');
     $('#chip-name').textContent = s.name;
     $('#chip-level').textContent = 'Lv ' + lvl.level;

@@ -116,7 +116,7 @@ var AGE_GROUPS = [
   { id: '6-8',   min: 6,  max: 8,  name: 'Explorers' },
   { id: '9-11',  min: 9,  max: 11, name: 'Inventors' },
   { id: '12-14', min: 12, max: 14, name: 'Creators',
-    more: { text: 'Courses for ages 12–14 start with a free trial lesson. See them on the school site.', link: 'See my courses', href: '#/courses' } },
+    more: { text: 'Courses for ages 12–14 start with a free trial lesson. See them on the school site.', link: 'See my courses', href: 'courses.html?age=12' } },
   { id: '15-17', min: 15, max: 17, name: 'Pros',
     more: { text: 'Your course is AI Trail: short hands-on lessons on using AI for studying and projects.', link: 'Open AI Trail', href: 'ai-trail/' } }
 ];
