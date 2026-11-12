@@ -1,7 +1,7 @@
 'use strict';
 
 // Age theme of Sevalumo: the same colour stops, shapes and morphing Sevi as the parent site
-// (kids-ai-courses/channel.js). Keep STOPS and paint() in sync with it.
+// (kids-ai-courses/designs/parents/channel/channel.js). Keep STOPS and paint() in sync with it.
 // 6-8 is bright and playful, 15-17 is calm and dark. The cabinet paints the middle age of the child's group.
 var Theme = (function () {
   var root = document.documentElement;
@@ -73,7 +73,7 @@ var Theme = (function () {
 
   // Group id from the profile ('9-11') → the age painted: the stop of that group, so each group has one clean look
   var GROUP_AGE = { '6-8': 7, '9-11': 10, '12-14': 13, '15-17': 16 };
-  function ageOf(groupId) { return GROUP_AGE[groupId] || 6; }
+  function ageOf(groupId) { return GROUP_AGE[groupId === '14-17' ? '15-17' : groupId] || 6; } // '14-17': старое id, читается как '15-17'
 
   // Smooth travel through every age in between, so a change from 7 to 16 visibly grows up
   var ageNow = null, raf = 0;

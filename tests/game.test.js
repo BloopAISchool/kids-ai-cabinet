@@ -1,12 +1,29 @@
 'use strict';
 
-const test = require('node:test');
+const { describe, before, after, test } = require('node:test');
 const assert = require('node:assert/strict');
 const G = require('../js/game.js');
-const { COURSES } = require('../js/data.js');
+const D = require('../js/data.js');
+const { COURSES, AGE_GROUPS } = D;
 
 const ALL = [true, true, true, true];
-const course = COURSES[0];
+
+// Тестовый курс-фикстура той же формы, что был hello-ai: 3 урока по 4 вопроса.
+// В кабинете сейчас нет своих курсов (COURSES = []), поэтому логику XP, звёзд, уровней,
+// серий и наград проверяем на нём. game.js читает D.COURSES напрямую, поэтому фикстура
+// кладётся в тот же массив только на время describe ниже и убирается после него.
+function lesson(n) {
+  const questions = [1, 2, 3, 4].map(k => ({
+    q: `Lesson ${n}, question ${k}?`, options: ['Right', 'Wrong'], explain: `Explanation ${n}.${k}`
+  }));
+  return { id: `test-${n}`, title: `Lesson ${n}`, questions };
+}
+const FIXTURE = {
+  id: 'test-course', title: 'Test course', ages: [6, 7], age: 'Ages 6-7', palette: 'mint', pose: 'hello', thumb: '#DDF6EF',
+  lessons: [lesson(1), lesson(2), lesson(3)]
+};
+
+const course = FIXTURE;
 
 function passCourse(state, answers, day) {
   let r;
@@ -17,94 +34,117 @@ function passCourse(state, answers, day) {
   return { state, last: r };
 }
 
-test('stars by accuracy', () => {
-  assert.equal(G.starsFor(4, 4), 3);
-  assert.equal(G.starsFor(3, 4), 2);
-  assert.equal(G.starsFor(2, 4), 1);
-  assert.equal(G.starsFor(1, 4), 0);
-});
+describe('game logic (fixture course injected into COURSES)', () => {
+  before(() => { COURSES.push(FIXTURE); });
+  after(() => { COURSES.splice(COURSES.indexOf(FIXTURE), 1); });
 
-test('lesson XP: correct + combo + completion + perfect', () => {
-  const x = G.lessonXp(ALL);
-  // 4×10 за ответы, комбо с 3-го ответа: 2×5, урок 20, идеально 30
-  assert.equal(x.total, 40 + 10 + 20 + 30);
-  assert.equal(x.bestCombo, 4);
-});
+  test('stars by accuracy', () => {
+    assert.equal(G.starsFor(4, 4), 3);
+    assert.equal(G.starsFor(3, 4), 2);
+    assert.equal(G.starsFor(2, 4), 1);
+    assert.equal(G.starsFor(1, 4), 0);
+  });
 
-test('wrong answer resets combo, failed lesson gives only answer XP', () => {
-  const x = G.lessonXp([true, false, false, false]);
-  assert.equal(x.stars, 0);
-  assert.equal(x.total, 10);
-  assert.equal(G.lessonXp([true, true, false, true]).combo, 0);
-});
+  test('lesson XP: correct + combo + completion + perfect', () => {
+    const x = G.lessonXp(ALL);
+    // 4×10 за ответы, комбо с 3-го ответа: 2×5, урок 20, идеально 30
+    assert.equal(x.total, 40 + 10 + 20 + 30);
+    assert.equal(x.bestCombo, 4);
+  });
 
-test('replay gives only the improvement over the best result', () => {
-  let s = G.newState('Kid');
-  let r = G.applyLesson(s, course.id, course.lessons[0].id, [true, true, false, true], '2026-10-01');
-  assert.equal(r.earned, 30 + 20);
-  r = G.applyLesson(r.state, course.id, course.lessons[0].id, [true, true, false, true], '2026-10-01');
-  assert.equal(r.earned, 0);
-  r = G.applyLesson(r.state, course.id, course.lessons[0].id, ALL, '2026-10-01');
-  assert.equal(r.earned, 100 - 50);
-  assert.equal(r.state.lessons[course.lessons[0].id].stars, 3);
-});
+  test('wrong answer resets combo, failed lesson gives only answer XP', () => {
+    const x = G.lessonXp([true, false, false, false]);
+    assert.equal(x.stars, 0);
+    assert.equal(x.total, 10);
+    assert.equal(G.lessonXp([true, true, false, true]).combo, 0);
+  });
 
-test('course completion bonus is given once', () => {
-  const { state, last } = passCourse(G.newState('Kid'), ALL, '2026-10-01');
-  assert.equal(last.courseCompleted, true);
-  assert.equal(last.courseBonus, 100);
-  assert.equal(state.xp, 3 * 100 + 100);
-  const again = G.applyLesson(state, course.id, course.lessons[2].id, ALL, '2026-10-01');
-  assert.equal(again.courseBonus, 0);
-  assert.equal(G.stats(state).coursesDone, 1);
-});
+  test('replay gives only the improvement over the best result', () => {
+    let s = G.newState('Kid');
+    let r = G.applyLesson(s, course.id, course.lessons[0].id, [true, true, false, true], '2026-10-01');
+    assert.equal(r.earned, 30 + 20);
+    r = G.applyLesson(r.state, course.id, course.lessons[0].id, [true, true, false, true], '2026-10-01');
+    assert.equal(r.earned, 0);
+    r = G.applyLesson(r.state, course.id, course.lessons[0].id, ALL, '2026-10-01');
+    assert.equal(r.earned, 100 - 50);
+    assert.equal(r.state.lessons[course.lessons[0].id].stars, 3);
+  });
 
-test('lessons unlock in order', () => {
-  let s = G.newState('Kid');
-  assert.equal(G.isLessonUnlocked(s, course, 1), false);
-  s = G.applyLesson(s, course.id, course.lessons[0].id, [true, true, false, false], '2026-10-01').state;
-  assert.equal(G.isLessonUnlocked(s, course, 1), true);
-});
+  test('course completion bonus is given once', () => {
+    const { state, last } = passCourse(G.newState('Kid'), ALL, '2026-10-01');
+    assert.equal(last.courseCompleted, true);
+    assert.equal(last.courseBonus, 100);
+    assert.equal(state.xp, 3 * 100 + 100);
+    const again = G.applyLesson(state, course.id, course.lessons[2].id, ALL, '2026-10-01');
+    assert.equal(again.courseBonus, 0);
+    assert.equal(G.stats(state).coursesDone, 1);
+  });
 
-test('streak grows on consecutive days and resets after a gap', () => {
-  let s = G.newState('Kid');
-  const id = course.lessons[0].id;
-  s = G.applyLesson(s, course.id, id, ALL, '2026-10-01').state;
-  s = G.applyLesson(s, course.id, id, ALL, '2026-10-02').state;
-  s = G.applyLesson(s, course.id, id, ALL, '2026-10-02').state;
-  assert.equal(s.streak, 2);
-  assert.equal(G.currentStreak(s, '2026-10-03'), 2);
-  assert.equal(G.currentStreak(s, '2026-10-04'), 0);
-  s = G.applyLesson(s, course.id, id, ALL, '2026-10-05').state;
-  assert.equal(s.streak, 1);
-  assert.equal(s.bestStreak, 2);
-});
+  test('lessons unlock in order', () => {
+    let s = G.newState('Kid');
+    assert.equal(G.isLessonUnlocked(s, course, 1), false);
+    s = G.applyLesson(s, course.id, course.lessons[0].id, [true, true, false, false], '2026-10-01').state;
+    assert.equal(G.isLessonUnlocked(s, course, 1), true);
+  });
 
-test('answer streak carries over between lessons and resets on a mistake', () => {
-  let s = G.newState('Kid');
-  s = G.applyLesson(s, course.id, course.lessons[0].id, [false, true, true, true], '2026-10-01').state;
-  s = G.applyLesson(s, course.id, course.lessons[1].id, [true, true, false, true], '2026-10-01').state;
-  assert.equal(s.bestCombo, 5);
-  assert.equal(s.combo, 1);
-});
+  test('streak grows on consecutive days and resets after a gap', () => {
+    let s = G.newState('Kid');
+    const id = course.lessons[0].id;
+    s = G.applyLesson(s, course.id, id, ALL, '2026-10-01').state;
+    s = G.applyLesson(s, course.id, id, ALL, '2026-10-02').state;
+    s = G.applyLesson(s, course.id, id, ALL, '2026-10-02').state;
+    assert.equal(s.streak, 2);
+    assert.equal(G.currentStreak(s, '2026-10-03'), 2);
+    assert.equal(G.currentStreak(s, '2026-10-04'), 0);
+    s = G.applyLesson(s, course.id, id, ALL, '2026-10-05').state;
+    assert.equal(s.streak, 1);
+    assert.equal(s.bestStreak, 2);
+  });
 
-test('achievements unlock once and level goes up', () => {
-  const { state, last } = passCourse(G.newState('Kid'), ALL, '2026-10-01');
-  const ids = Object.keys(state.achievements);
-  for (const id of ['first-steps', 'sharp-mind', 'on-fire', 'graduate', 'flawless']) {
-    assert.ok(ids.includes(id), id);
-  }
-  assert.equal(G.levelFor(state.xp).level, 3);
-  assert.ok(last.unlocked.some(a => a.id === 'graduate'));
-  const again = G.applyLesson(state, course.id, course.lessons[0].id, ALL, '2026-10-01');
-  assert.equal(again.unlocked.length, 0);
-});
+  test('answer streak carries over between lessons and resets on a mistake', () => {
+    let s = G.newState('Kid');
+    s = G.applyLesson(s, course.id, course.lessons[0].id, [false, true, true, true], '2026-10-01').state;
+    s = G.applyLesson(s, course.id, course.lessons[1].id, [true, true, false, true], '2026-10-01').state;
+    assert.equal(s.bestCombo, 5);
+    assert.equal(s.combo, 1);
+  });
 
-test('every question has at least 2 options and an explanation', () => {
-  for (const c of COURSES) for (const l of c.lessons) for (const q of l.questions) {
-    assert.ok(q.options.length >= 2, q.q);
-    assert.ok(q.explain, q.q);
-  }
+  test('achievements unlock once and level goes up', () => {
+    const { state, last } = passCourse(G.newState('Kid'), ALL, '2026-10-01');
+    const ids = Object.keys(state.achievements);
+    for (const id of ['first-steps', 'sharp-mind', 'on-fire', 'graduate', 'flawless']) {
+      assert.ok(ids.includes(id), id);
+    }
+    assert.equal(G.levelFor(state.xp).level, 3);
+    assert.ok(last.unlocked.some(a => a.id === 'graduate'));
+    const again = G.applyLesson(state, course.id, course.lessons[0].id, ALL, '2026-10-01');
+    assert.equal(again.unlocked.length, 0);
+  });
+
+  test('every question has at least 2 options and an explanation', () => {
+    for (const c of COURSES) for (const l of c.lessons) for (const q of l.questions) {
+      assert.ok(q.options.length >= 2, q.q);
+      assert.ok(q.explain, q.q);
+    }
+  });
+
+  test('coursesForAge returns a course only when its whole age range fits the group', () => {
+    const ids = age => D.coursesForAge(age).map(c => c.id);
+    assert.deepEqual(ids('6-8'), ['test-course']);
+    assert.deepEqual(ids('9-11'), []);
+    assert.deepEqual(ids(''), []);
+    assert.deepEqual(ids(undefined), []);
+  });
+
+  test('AI Champion needs every course for your age, not for all ages', () => {
+    const champion = D.ACHIEVEMENTS.find(a => a.id === 'champion');
+    let state = G.newState('Ann');
+    state.age = '6-8';
+    assert.equal(champion.check(state), false);
+    state = passCourse(state, ALL, '2026-10-01').state; // test-course: единственный курс для 6-8 в фикстуре
+    state.age = '6-8';
+    assert.equal(champion.check(state), true);
+  });
 });
 
 test('week XP covers 7 days ending today', () => {
@@ -117,34 +157,51 @@ test('week XP covers 7 days ending today', () => {
   assert.equal(w[6].xp, 40);
 });
 
-// ---------- Курсы по возрасту из профиля ----------
-const D = require('../js/data.js');
+// ---------- Кабинет без своих курсов: только ссылки на каталог сайта ----------
 
-test('age groups match the school site', () => {
-  assert.deepEqual(D.AGE_GROUPS.map(g => g.id), ['6-8', '9-11', '12-14', '15-17']);
+test('cabinet has no courses of its own', () => {
+  assert.deepEqual(COURSES, []);
 });
 
-test('cabinet shows only courses whose whole age range fits the profile age', () => {
-  const ids = age => D.coursesForAge(age).map(c => c.id);
-  assert.deepEqual(ids('6-8'), ['hello-ai']);
-  assert.deepEqual(ids('9-11'), ['prompts', 'ai-art']);
-  assert.deepEqual(ids('12-14'), []);
-  assert.deepEqual(ids(''), []);
-  assert.deepEqual(ids(undefined), []);
+test('age groups match the school site', () => {
+  assert.deepEqual(AGE_GROUPS.map(g => g.id), ['6-8', '9-11', '12-14', '15-17']);
+});
+
+test('groups do not overlap: every age 6-17 is in exactly one group', () => {
+  for (let age = 6; age <= 17; age++) {
+    assert.equal(AGE_GROUPS.filter(g => g.min <= age && age <= g.max).length, 1, 'age ' + age);
+  }
+});
+
+test('migration: the old saved group id 14-17 is read as 15-17', () => {
+  assert.equal(D.findAgeGroup('14-17').id, '15-17');
+  assert.deepEqual(D.coursesForAge('14-17'), []);
+});
+
+test('every age group links to its section of the school course catalog', () => {
+  for (const g of AGE_GROUPS) {
+    assert.ok(g.more, g.id);
+    assert.ok(g.more.text && g.more.link, g.id);
+    assert.equal(g.more.href, `courses.html?age=${g.min}`, g.id);
+  }
+});
+
+test('with no courses, no age shows any course', () => {
+  for (const age of ['6-8', '9-11', '12-14', '15-17', '', undefined]) {
+    assert.deepEqual(D.coursesForAge(age), [], String(age));
+  }
+});
+
+test('a new cabinet with no courses unlocks no badges', () => {
+  const s = G.newState('Kid');
+  s.age = '9-11';
+  const st = G.stats(s);
+  const unlocked = D.ACHIEVEMENTS.filter(a => a.check(s, st)).map(a => a.id);
+  assert.deepEqual(unlocked, []);
 });
 
 test('every cabinet course fits one age group', () => {
   for (const c of D.COURSES) {
     assert.ok(D.AGE_GROUPS.some(g => c.ages[0] >= g.min && c.ages[1] <= g.max), c.id);
   }
-});
-
-test('AI Champion needs every course for your age, not for all ages', () => {
-  const champion = D.ACHIEVEMENTS.find(a => a.id === 'champion');
-  let state = G.newState('Ann');
-  state.age = '6-8';
-  assert.equal(champion.check(state), false);
-  state = passCourse(state, ALL, '2026-10-01').state; // hello-ai — единственный курс для 6–8
-  state.age = '6-8';
-  assert.equal(champion.check(state), true);
 });

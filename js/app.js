@@ -35,6 +35,7 @@ var app = {
 
   init: function () {
     $$('[data-site-link]').forEach(function (a) { a.href = SITE_URL; });
+    $$('[data-catalog-link]').forEach(function (a) { a.href = SITE_URL + 'courses.html'; });
     $('#shapes').innerHTML = Theme.shapes();
 
     // ?start=<курс> — пришли с сайта по кнопке «Play now»
@@ -86,7 +87,7 @@ var app = {
     try {
       var raw = localStorage.getItem(STORAGE_KEY);
       var st = raw ? Object.assign(Game.newState(), JSON.parse(raw)) : null;
-      if (st && st.age === '14-17') st.age = '15-17'; // старое имя последней группы
+      if (st && st.age === '14-17') st.age = '15-17'; // миграция: старое id старшей группы
       return st;
     } catch (e) {
       return null;
@@ -212,6 +213,11 @@ var app = {
 
   renderBadges: function () {
     var s = this.state, got = 0;
+    // Every badge needs a lesson in the cabinet. With no courses they cannot be earned, so hide the section.
+    var none = !COURSES.length;
+    $('#badges').hidden = none;
+    $$('a[href="#badges"]').forEach(function (a) { a.parentNode.hidden = none; });
+    if (none) return;
     $('#badge-list').innerHTML = ACHIEVEMENTS.map(function (a) {
       var date = s.achievements[a.id];
       if (date) got++;
@@ -554,7 +560,7 @@ var app = {
       self.save();
       self.render();
       $('#welcome').close();
-      if (isNew && !self.pendingStart) self.toast('👋', 'Nice to meet you, ' + name + '!', 'Start your first lesson below.');
+      if (isNew && !self.pendingStart) self.toast('👋', 'Nice to meet you, ' + name + '!', COURSES.length ? 'Start your first lesson below.' : 'Your courses are on the school site.');
       self.runPendingStart();
     });
     $('#welcome').addEventListener('cancel', function () { self.save(); self.runPendingStart(); });
