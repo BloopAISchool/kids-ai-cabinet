@@ -37,6 +37,7 @@ var app = {
     $$('[data-site-link]').forEach(function (a) { a.href = SITE_URL; });
     $$('[data-catalog-link]').forEach(function (a) { a.href = SITE_URL + 'courses/'; });
     $('#shapes').innerHTML = Theme.shapes();
+    this.loadCatalog();
 
     // ?start=<курс> — пришли с сайта по кнопке «Play now»
     var params = new URLSearchParams(location.search);
@@ -163,9 +164,22 @@ var app = {
         '<button class="btn btn--primary" type="button" data-open-welcome>Choose my age</button></div>';
       return;
     }
-    var more = group.more
-      ? '<div class="course-empty"><p>' + group.more.text + '</p><a class="btn btn--primary" href="' + SITE_URL + group.more.href + '">' + group.more.link + '</a></div>'
-      : '';
+    // Real school-site courses for this age (same list and same rule as the site's courses/ page)
+    var site = this.siteCourses(group);
+    var more;
+    if (site.length) {
+      more = '<div class="site-courses">' + site.map(function (c) {
+        var href = c.playable && !c.url ? '?start=' + encodeURIComponent(c.id) : SITE_URL + c.url;
+        return '<article class="site-course"><span class="course__age">' + esc(BLOOP_CATALOG.courseAges(c)) + '</span>' +
+          '<h3>' + esc(c.title) + '</h3><p>' + esc(c.desc) + '</p>' +
+          '<a class="btn btn--primary" href="' + esc(href) + '" aria-label="Start ' + esc(c.title) + '">Start</a></article>';
+      }).join('') + '</div>' +
+      '<p class="site-courses__all"><a class="link-btn" href="' + SITE_URL + 'courses/#age-' + group.id + '">See all courses</a></p>';
+    } else {
+      more = group.more
+        ? '<div class="course-empty"><p>' + group.more.text + '</p><a class="btn btn--primary" href="' + SITE_URL + group.more.href + '">' + group.more.link + '</a></div>'
+        : '';
+    }
 
     $('#course-list').innerHTML = more + mine.map(function (c, k) {
       var cs = Game.courseStatus(s, c);
@@ -203,6 +217,30 @@ var app = {
         '<ol class="path">' + nodes + '</ol>' +
       '</article>';
     }).join('');
+  },
+
+  // Courses of the school site for this age group. The list lives in the site's catalog.js (one source of truth),
+  // loaded from SITE_URL by loadCatalog(). Without it (offline, blocked, not deployed) this is empty and the
+  // old "no courses yet" text with a link to the site is shown instead.
+  siteCourses: function (group) {
+    if (typeof BLOOP_CATALOG === 'undefined') return [];
+    var C = BLOOP_CATALOG;
+    return C.COURSES.filter(function (c) {
+      var g = C.groupOf(c);
+      return g && g.id === group.id && (c.url || c.playable);
+    });
+  },
+
+  loadCatalog: function () {
+    var self = this, tag = document.createElement('script');
+    tag.src = SITE_URL + 'catalog.js';
+    // Only the course list changes, and only when the catalog has courses for this age:
+    // a full render() would redraw Sevi and the stats a second time for nothing.
+    tag.onload = function () {
+      var group = self.state && findAgeGroup(self.state.age);
+      if (group && self.siteCourses(group).length) self.renderCourses();
+    };
+    document.head.appendChild(tag); // on error: nothing to do, the fallback text stays
   },
 
   starIcons: function (n) {
