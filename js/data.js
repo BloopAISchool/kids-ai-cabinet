@@ -9,13 +9,13 @@ var COURSES = [];
 // more — куда вести, если для группы в кабинете пока нет курсов (путь от корня сайта школы).
 var AGE_GROUPS = [
   { id: '6-8',   min: 6,  max: 8,  name: 'Explorers',
-    more: { text: 'There are no courses for ages 6-8 yet. See every course on the school site.', link: 'See all courses', href: 'courses.html?age=6' } },
+    more: { text: 'There are no courses for ages 6-8 yet. See every course on the school site.', link: 'See all courses', href: 'courses/#age-6-8' } },
   { id: '9-11',  min: 9,  max: 11, name: 'Inventors',
-    more: { text: 'There are no courses for ages 9-11 yet. See every course on the school site.', link: 'See all courses', href: 'courses.html?age=9' } },
+    more: { text: 'There are no courses for ages 9-11 yet. See every course on the school site.', link: 'See all courses', href: 'courses/#age-9-11' } },
   { id: '12-14', min: 12, max: 14, name: 'Creators',
-    more: { text: 'Your courses live on the school site: AI Starter Trail for beginners.', link: 'See my courses', href: 'courses.html?age=12' } },
+    more: { text: 'Your courses live on the school site: AI Starter Trail for beginners.', link: 'See my courses', href: 'courses/#age-12-14' } },
   { id: '15-17', min: 15, max: 17, name: 'Pros',
-    more: { text: 'Your courses live on the school site: AI Trail.', link: 'See my courses', href: 'courses.html?age=15' } }
+    more: { text: 'Your courses live on the school site: AI Trail.', link: 'See my courses', href: 'courses/#age-15-17' } }
 ];
 
 // Старое id старшей группы ('14-17') читается как '15-17': границы групп больше не пересекаются.

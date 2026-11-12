@@ -182,7 +182,7 @@ test('every age group links to its section of the school course catalog', () => 
   for (const g of AGE_GROUPS) {
     assert.ok(g.more, g.id);
     assert.ok(g.more.text && g.more.link, g.id);
-    assert.equal(g.more.href, `courses.html?age=${g.min}`, g.id);
+    assert.equal(g.more.href, `courses/#age-${g.id}`, g.id);
   }
 });
 

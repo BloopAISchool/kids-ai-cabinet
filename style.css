@@ -62,13 +62,10 @@ a { color: inherit; text-underline-offset: .2em; text-decoration-thickness: 1px;
 /* ---------- Nav ---------- */
 .nav { position: sticky; top: 0; z-index: 50; background: color-mix(in oklch, var(--bg) 92%, transparent); color: var(--on-bg); backdrop-filter: saturate(1.4) blur(10px); -webkit-backdrop-filter: saturate(1.4) blur(10px); border-bottom: 1px solid color-mix(in oklch, var(--on-bg) 12%, transparent); }
 .nav__in { display: flex; align-items: center; gap: 24px; height: 68px; }
-.logo { display: flex; align-items: center; gap: 10px; min-height: 44px; text-decoration: none; font-weight: 800; font-variation-settings: "CASL" var(--casl), "slnt" var(--slnt); font-size: 1.15rem; letter-spacing: -.02em; white-space: nowrap; }
+.logo { display: flex; align-items: center; gap: 10px; text-decoration: none; font-weight: 800; font-variation-settings: "CASL" var(--casl), "slnt" var(--slnt); font-size: 1.15rem; letter-spacing: -.02em; white-space: nowrap; }
 .logo__bot { width: 34px; height: 34px; }
 .logo__bot svg { display: block; width: 100%; height: 100%; }
 .logo__text b { font-weight: 500; }
-/* Logo wordmark (brand/logo-dot): inline SVG, follows text colour; 30px desktop, 26px under 760px */
-.logo__mark { display: block; flex: none; width: auto; height: .764em; aspect-ratio: 4518 / 764; font-size: 30px; }
-@media (max-width: 759px) { .logo__mark { font-size: 26px; } }
 .nav__links { display: flex; gap: 22px; margin: 0 0 0 auto; padding: 0; list-style: none; font-size: .95rem; font-weight: 600; }
 .nav__links a { text-decoration: none; opacity: .82; white-space: nowrap; }
 .nav__links a:hover { opacity: 1; text-decoration: underline; }
@@ -367,7 +364,3 @@ a { color: inherit; text-underline-offset: .2em; text-decoration-thickness: 1px;
 @media (max-width: 420px) {
     .logo__text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 }
-
-/* logo in the footer (small variant) */
-.logo__mark--foot { display: inline-block; font-size: 22px; vertical-align: middle; }
-.footer__brand { display: inline-block; min-height: 24px; margin-right: 8px; vertical-align: middle; }
