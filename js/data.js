@@ -36,7 +36,7 @@ function coursesForAge(ageId) {
 // Уровни: сколько XP нужно для каждого уровня и его название
 var LEVELS = [
   { xp: 0,    title: 'Curious Cadet' },
-  { xp: 100,  title: 'Robot Friend' },
+  { xp: 100,  title: 'Sevi Friend' },
   { xp: 250,  title: 'Prompt Apprentice' },
   { xp: 450,  title: 'Idea Spark' },
   { xp: 700,  title: 'AI Explorer' },
