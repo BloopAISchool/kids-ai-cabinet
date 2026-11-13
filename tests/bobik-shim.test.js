@@ -72,14 +72,14 @@ test('bobik shim: motion lives only inside prefers-reduced-motion: no-preference
     assert.ok(/prefers-reduced-motion:no-preference/.test(B.CSS));
 });
 
-test('cabinet: age track id picks the Sevi form, unknown falls back to Creators', () => {
+test('cabinet: age track id picks the Sevi form, no age falls back to Explorers like the theme', () => {
     assert.equal(B.formForGroup('6-8'), 'explorers');
     assert.equal(B.formForGroup('9-11'), 'inventors');
     assert.equal(B.formForGroup('12-14'), 'creators');
     assert.equal(B.formForGroup('15-17'), 'pros');
     assert.equal(B.formForGroup('14-17'), 'pros', 'old id still saved by earlier versions');
-    assert.equal(B.formForGroup(''), 'creators');
-    assert.equal(B.formForGroup(undefined), 'creators');
+    assert.equal(B.formForGroup(''), 'explorers');
+    assert.equal(B.formForGroup(undefined), 'explorers');
     const D = require('../js/data.js');
     for (const g of D.AGE_GROUPS) assert.ok(B.FORMS.includes(B.formForGroup(g.id)), g.id);
 });
@@ -107,4 +107,20 @@ test('cabinet: the XP level titles no longer name a robot', () => {
     const D = require('../js/data.js');
     assert.ok(D.LEVELS.some(l => l.title === 'Sevi Friend'));
     assert.ok(!D.LEVELS.some(l => /robot/i.test(l.title)));
+});
+
+test('cabinet CSS: Sevi is sized by height in the hero and fixed boxes, and --sevi-full matches the full crops', () => {
+    const css = fs.readFileSync(path.join(__dirname, '..', 'style.css'), 'utf8');
+    // bob() puts an inline width:100% on the span, so a width rule on .sevi-s7 itself would never apply
+    assert.ok(!/\.sevi-s7\s*\{[^}]*width\s*:/.test(css), 'no width on .sevi-s7: the inline style wins');
+    for (const box of ['hero__bot', 'course__thumb', 'modal__bot', 'quiz__bot', 'result__bot']) {
+        assert.ok(new RegExp('\\.' + box + ' \\.sevi-s7 svg \\{ width: auto; height: ').test(css), box + ' sizes Sevi by height');
+    }
+    const full = { creators: /html \{ --sevi-full: (\d+); \}/ };
+    assert.equal(Number(css.match(full.creators)[1]), B.CROPS.creators.full[3], 'default (creators)');
+    for (const f of ['explorers', 'inventors', 'pros']) {
+        const m = css.match(new RegExp('html\\[data-sevi-form="' + f + '"\\] \\{ --sevi-full: (\\d+); \\}'));
+        assert.ok(m, f);
+        assert.equal(Number(m[1]), B.CROPS[f].full[3], f);
+    }
 });
