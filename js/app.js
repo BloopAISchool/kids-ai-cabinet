@@ -99,7 +99,7 @@ var app = {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state)); } catch (e) { /* без хранилища прогресс живёт до перезагрузки */ }
   },
 
-  // Sevi S7 in the form of the child's age track (Explorers 6-8 ... Pros 15-17; Creators until an age is picked).
+  // Sevi S7 in the form of the child's age track (Explorers 6-8 ... Pros 15-17; Explorers until an age is picked).
   // crop: 'full' (whole figure: hero) or 'bust' (head and torso with the chest logo: welcome, quiz, result, thumbs).
   bobik: function (pose, crop, groupId) {
     Bobik.setForm(Bobik.formForGroup(groupId || (this.state && this.state.age)));
@@ -207,7 +207,7 @@ var app = {
 
       return '<article class="course' + (cs.done ? ' is-complete' : '') + '" id="course-' + c.id + '">' +
         '<div class="course__head">' +
-          '<div class="course__thumb" style="--C:var(--' + THUMB[k % 3] + ')">' + self.bobik(cs.done ? 'victory' : c.pose, 'bust') + '</div>' +
+          '<div class="course__thumb" style="--C:var(--' + THUMB[k % 3] + ')" aria-hidden="true">' + self.bobik(cs.done ? 'victory' : c.pose, 'bust') + '</div>' +
           '<div class="course__info">' +
             '<span class="course__age">' + c.age + '</span>' +
             '<h3>' + esc(c.title) + '</h3>' +
@@ -372,7 +372,7 @@ var app = {
     $('#quiz-inner').innerHTML = this.quizTop() +
       '<p class="quiz__lesson">' + esc(qz.course.title) + ' · ' + esc(qz.lesson.title) + '</p>' +
       '<div class="quiz__ask">' +
-        '<div class="quiz__bot" id="quiz-bobik">' + this.bobik('think', 'bust') + '</div>' +
+        '<div class="quiz__bot" id="quiz-bobik" aria-hidden="true">' + this.bobik('think', 'bust') + '</div>' +
         '<h2 class="quiz__q" id="quiz-title">' + esc(q.q) + '</h2>' +
       '</div>' +
       '<div class="options" role="group" aria-label="Answers">' +
@@ -483,7 +483,7 @@ var app = {
     $('#quiz-inner').innerHTML =
       '<div class="quiz__top"><button class="quiz__close" type="button" data-quiz="close" aria-label="Close">✕</button></div>' +
       '<div class="result">' +
-        '<div class="result__bot">' + this.bobik(pose, 'bust') + '</div>' +
+        '<div class="result__bot" aria-hidden="true">' + this.bobik(pose, 'bust') + '</div>' +
         '<div class="result__stars" aria-label="' + r.stars + ' of 3 stars">' + this.starIcons(r.stars) + '</div>' +
         '<h2 id="quiz-title">' + heading + '</h2>' +
         '<p class="result__sub">' + sub + '</p>' +
@@ -589,7 +589,11 @@ var app = {
       self.runPendingStart();
     });
     $('#welcome').addEventListener('cancel', function () { self.save(); self.runPendingStart(); });
-    $('#welcome').addEventListener('close', function () { Theme.go(Theme.ageOf(self.state.age)); });
+    $('#welcome').addEventListener('close', function () {
+      Theme.go(Theme.ageOf(self.state.age));
+      // closed without saving: Sevi's form goes back from the previewed age to the saved one
+      Bobik.setForm(Bobik.formForGroup(self.state.age));
+    });
     $('#welcome-form').elements.age.addEventListener('change', function () {
       Theme.go(Theme.ageOf(this.value));
       // Sevi grows into the form of the age just picked

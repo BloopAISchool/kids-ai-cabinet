@@ -99,9 +99,10 @@ var BASE = (function () {
   return '../brand/sevi/';
 })();
 
-// Age track id of the profile ('6-8', '9-11', '12-14', '15-17', old '14-17') -> Sevi form. Unknown -> Creators.
+// Age track id of the profile ('6-8', '9-11', '12-14', '15-17', old '14-17') -> Sevi form. No age yet -> Explorers,
+// the same as Theme.ageOf() (no age paints the 6-8 channel) and the main site, which opens at age 6.
 var GROUP_FORM = { '6-8': 'explorers', '9-11': 'inventors', '12-14': 'creators', '15-17': 'pros', '14-17': 'pros' };
-function formForGroup(id) { return GROUP_FORM[id] || 'creators'; }
+function formForGroup(id) { return GROUP_FORM[id] || 'explorers'; }
 
 // Ink head badge for small sizes (logo): a dark circle with the head mark, so the cream helmet reads on any header.
 function badge(size) {
