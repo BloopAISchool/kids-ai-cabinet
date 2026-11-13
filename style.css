@@ -6,7 +6,6 @@
     --acc: #FF5B4A; --on-acc: #1E1A3C;
     --s1: #FF5B4A; --s2: #2F6BEF; --s3: #FFFFFF;
     --page: #E8F3FF; --ink: #1E1A3C; --card: #FFFFFF; --line: rgba(30, 26, 60, .14); --soft: rgba(30, 26, 60, .66);
-    --rb-body: #6EC3FF; --rb-accent: #FF5B4A; --rb-screen: #1E1A3C; --rb-glow: #DDF6FF; --rb-joint: #FF8FB1;
     --rad: 28px; --casl: 1; --wd: 900; --slnt: -9; --tilt: -2deg; --bob: 12px; --m: 0;
     --focus: #2F6BEF;
     --ease: cubic-bezier(.16, 1, .3, 1);
@@ -64,6 +63,11 @@ a { color: inherit; text-underline-offset: .2em; text-decoration-thickness: 1px;
 .nav__in { display: flex; align-items: center; gap: 24px; height: 68px; }
 .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; font-weight: 800; font-variation-settings: "CASL" var(--casl), "slnt" var(--slnt); font-size: 1.15rem; letter-spacing: -.02em; white-space: nowrap; }
 .logo__bot { width: 34px; height: 34px; flex: none; }
+/* Sevi head badge: ink circle, head mark at 80% so the cream helmet reads on cream, mint and yellow headers */
+.sevi-badge { display: grid; place-items: center; border-radius: 50%; background: #121A2E; flex: none; }
+.sevi-badge img { display: block; width: 80%; height: 80%; }
+/* on the blue and navy headers (ages 12+) a sun-yellow ring separates the badge from the ground */
+html[data-sevi-form="creators"] .sevi-badge, html[data-sevi-form="pros"] .sevi-badge { box-shadow: inset 0 0 0 1.5px #FFCE3A; }
 .logo { min-height: 44px; }
 /* Dot wordmark (brand/logo-dot, small variant): follows text colour, the dot keeps its own colours. Ink height 0.764em of font-size. */
 .logo__word { display: block; flex: none; width: auto; height: .764em; aspect-ratio: 4518 / 764; font-size: 32px; }
@@ -91,6 +95,8 @@ a { color: inherit; text-underline-offset: .2em; text-decoration-thickness: 1px;
 .numeral__unit small { display: block; margin-top: 4px; font-size: .7em; font-weight: 500; opacity: .85; }
 .hero__bot { width: clamp(150px, calc(260px - var(--m) * 110px), 260px); padding: 0; border: 0; background: none; cursor: pointer; animation: bob 2.6s ease-in-out infinite; transition: width .5s var(--ease); }
 .hero__bot svg { display: block; width: 100%; }
+/* the whole figure is taller than the old robot: keep the hero's footprint close to before */
+.hero__bot .sevi-s7 { width: 64%; margin: 0 auto; }
 @keyframes bob { 50% { transform: translateY(calc(var(--bob) * -1)) rotate(calc(var(--bob) * .12deg)); } }
 
 .l3 { position: relative; margin-top: clamp(26px, 3vw, 34px); padding: clamp(20px, 2.4vw, 28px) clamp(18px, 2.6vw, 32px); background: var(--acc); color: var(--on-acc); border-radius: var(--rad); transform: rotate(var(--tilt)); transition: transform .5s var(--ease); box-shadow: 0 18px 40px -22px color-mix(in oklch, var(--on-bg) 70%, transparent); }
@@ -200,14 +206,6 @@ a { color: inherit; text-underline-offset: .2em; text-decoration-thickness: 1px;
 .how li:last-child { border-bottom: 0; }
 .how b { white-space: nowrap; font-variant-numeric: tabular-nums; }
 
-.swatches { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
-.swatch { width: 44px; height: 44px; border-radius: 50%; border: 4px solid var(--card); box-shadow: 0 0 0 2px var(--line); cursor: pointer; }
-.swatch[aria-checked="true"] { box-shadow: 0 0 0 3px var(--ink); }
-.swatch--auto { background: conic-gradient(var(--bg) 0 33%, var(--acc) 0 66%, var(--rb-body) 0); }
-.swatch--mint { background: #7AD3C1; }
-.swatch--sky { background: #8EC5FF; }
-.swatch--lav { background: #B7A6F2; }
-.swatch--peach { background: #FFB28E; }
 .settings h2 { text-align: center; }
 .settings__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 18px; }
 
@@ -226,7 +224,6 @@ a { color: inherit; text-underline-offset: .2em; text-decoration-thickness: 1px;
 .field span, .field-label { display: block; margin-bottom: 6px; font-weight: 700; font-size: .95rem; text-align: left; }
 .field input, .field select { width: 100%; min-height: 50px; padding: 0 14px; border: 2px solid color-mix(in oklch, var(--ink) 25%, transparent); border-radius: calc(var(--rad) * .35 + 4px); background: var(--page); color: var(--ink); font: inherit; }
 .field input:focus, .field select:focus { outline: none; border-color: var(--focus); box-shadow: 0 0 0 3px color-mix(in oklch, var(--focus) 30%, transparent); }
-.modal .swatches { margin-bottom: 24px; }
 
 /* ---------- Quiz ---------- */
 .quiz { width: min(720px, calc(100% - 32px)); max-height: calc(100dvh - 32px); padding: 0; border: 0; border-radius: calc(var(--rad) * .7 + 10px); background: var(--card); color: var(--ink); overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; }

@@ -9,7 +9,7 @@ var SITE_URL = location.hostname.endsWith('github.io') ? '/kids-ai-courses/' : '
 var REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // Course cards cycle three theme tokens that stay distinct on every age channel (same as the parent site)
-var THUMB = ['acc', 'rb-body', 'rb-joint'];
+var THUMB = ['acc', 's2', 'bg'];
 
 var $ = function (sel, root) { return (root || document).querySelector(sel); };
 var $$ = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
@@ -99,8 +99,11 @@ var app = {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state)); } catch (e) { /* без хранилища прогресс живёт до перезагрузки */ }
   },
 
-  bobik: function (pose, palette) {
-    return bob(STATES[pose] || STATES.neutral, PALETTES[palette || this.state.palette] || null);
+  // Sevi S7 in the form of the child's age track (Explorers 6-8 ... Pros 15-17; Creators until an age is picked).
+  // crop: 'full' (whole figure: hero) or 'bust' (head and torso with the chest logo: welcome, quiz, result, thumbs).
+  bobik: function (pose, crop, groupId) {
+    Bobik.setForm(Bobik.formForGroup(groupId || (this.state && this.state.age)));
+    return bob(STATES[pose] || STATES.neutral, null, null, crop || 'full');
   },
 
   today: function () { return Game.dayKey(); },
@@ -111,7 +114,7 @@ var app = {
     var lvl = Game.levelFor(s.xp);
     var st = Game.stats(s);
 
-    $('#logo-bobik').innerHTML = this.bobik('neutral');
+    $('#logo-bobik').innerHTML = Bobik.badge(34);
     if (!this.petting) $('#hero-bobik').innerHTML = this.bobik(st.lessonsDone ? 'joy' : 'hello');
     $('#chip-name').textContent = s.name;
     $('#chip-level').textContent = 'Lv ' + lvl.level;
@@ -135,7 +138,6 @@ var app = {
     this.renderBadges();
     this.renderDaily();
     this.renderWeek();
-    this.renderSwatches();
   },
 
   renderStats: function (st) {
@@ -205,7 +207,7 @@ var app = {
 
       return '<article class="course' + (cs.done ? ' is-complete' : '') + '" id="course-' + c.id + '">' +
         '<div class="course__head">' +
-          '<div class="course__thumb" style="--C:var(--' + THUMB[k % 3] + ')">' + self.bobik(cs.done ? 'victory' : c.pose, 'auto') + '</div>' +
+          '<div class="course__thumb" style="--C:var(--' + THUMB[k % 3] + ')">' + self.bobik(cs.done ? 'victory' : c.pose, 'bust') + '</div>' +
           '<div class="course__info">' +
             '<span class="course__age">' + c.age + '</span>' +
             '<h3>' + esc(c.title) + '</h3>' +
@@ -295,11 +297,6 @@ var app = {
     }).join('');
   },
 
-  renderSwatches: function () {
-    var pal = this.state.palette;
-    $$('.swatch').forEach(function (sw) { sw.setAttribute('aria-checked', String(sw.dataset.palette === pal)); });
-  },
-
   // ---------- Знакомство и настройки ----------
   openWelcome: function () {
     var dlg = $('#welcome');
@@ -309,16 +306,9 @@ var app = {
     var pending = !this.state.age && this.pendingStart && Game.findCourse(this.pendingStart);
     var pendingGroup = pending && AGE_GROUPS.filter(function (g) { return pending.ages[0] >= g.min && pending.ages[1] <= g.max; })[0];
     form.elements.age.value = findAgeGroup(this.state.age) ? this.state.age : (pendingGroup ? pendingGroup.id : '');
-    $('#welcome-bobik').innerHTML = this.bobik('hello');
+    $('#welcome-bobik').innerHTML = this.bobik('hello', 'bust', form.elements.age.value);
     if (!dlg.open) dlg.showModal();
     if (form.elements.age.value) Theme.go(Theme.ageOf(form.elements.age.value));
-  },
-
-  setPalette: function (name) {
-    this.state.palette = name;
-    this.save();
-    this.render();
-    if ($('#welcome').open) $('#welcome-bobik').innerHTML = this.bobik('delight');
   },
 
   // Сервера пока нет: прогресс живёт только в этом браузере, поэтому выход его стирает
@@ -382,7 +372,7 @@ var app = {
     $('#quiz-inner').innerHTML = this.quizTop() +
       '<p class="quiz__lesson">' + esc(qz.course.title) + ' · ' + esc(qz.lesson.title) + '</p>' +
       '<div class="quiz__ask">' +
-        '<div class="quiz__bot" id="quiz-bobik">' + this.bobik('think') + '</div>' +
+        '<div class="quiz__bot" id="quiz-bobik">' + this.bobik('think', 'bust') + '</div>' +
         '<h2 class="quiz__q" id="quiz-title">' + esc(q.q) + '</h2>' +
       '</div>' +
       '<div class="options" role="group" aria-label="Answers">' +
@@ -417,7 +407,7 @@ var app = {
     var comboLine = ok && qz.combo >= XP_RULES.comboFrom ? '<span class="feedback__combo">🔥 ' + qz.combo + ' in a row! +' + XP_RULES.combo + ' bonus</span>' : '';
     var last = qz.i === qz.questions.length - 1;
 
-    $('#quiz-bobik').innerHTML = this.bobik(ok ? (qz.combo >= 3 ? 'delight' : 'joy') : 'sad');
+    $('#quiz-bobik').innerHTML = this.bobik(ok ? (qz.combo >= 3 ? 'delight' : 'joy') : 'sad', 'bust');
     $('#quiz-inner').querySelector('.quiz__top').outerHTML = this.quizTop();
     var fb = $('#feedback');
     fb.className = 'feedback is-shown ' + (ok ? 'is-ok' : 'is-bad');
@@ -493,7 +483,7 @@ var app = {
     $('#quiz-inner').innerHTML =
       '<div class="quiz__top"><button class="quiz__close" type="button" data-quiz="close" aria-label="Close">✕</button></div>' +
       '<div class="result">' +
-        '<div class="result__bot">' + this.bobik(pose) + '</div>' +
+        '<div class="result__bot">' + this.bobik(pose, 'bust') + '</div>' +
         '<div class="result__stars" aria-label="' + r.stars + ' of 3 stars">' + this.starIcons(r.stars) + '</div>' +
         '<h2 id="quiz-title">' + heading + '</h2>' +
         '<p class="result__sub">' + sub + '</p>' +
@@ -533,7 +523,7 @@ var app = {
     if (REDUCED_MOTION) return;
     var box = $('#quiz').open ? $('#quiz') : $('#confetti');
     var css = getComputedStyle(document.documentElement);
-    var colors = ['--acc', '--s1', '--s2', '--rb-body', '--rb-joint', '--bg'].map(function (v) { return css.getPropertyValue(v).trim() || '#FFCE3A'; });
+    var colors = ['--acc', '--s1', '--s2', '--bg'].map(function (v) { return css.getPropertyValue(v).trim() || '#FFCE3A'; });
     for (var i = 0; i < 60; i++) {
       var p = document.createElement('i');
       p.className = 'confetti__piece';
@@ -557,9 +547,6 @@ var app = {
       if (start && !start.disabled) self.startLesson(start.dataset.course, Number(start.dataset.lesson));
 
       if (e.target.closest('[data-open-welcome]')) self.openWelcome();
-
-      var sw = e.target.closest('.swatch');
-      if (sw) self.setPalette(sw.dataset.palette);
     });
 
     $('#quiz').addEventListener('click', function (e) {
@@ -603,7 +590,11 @@ var app = {
     });
     $('#welcome').addEventListener('cancel', function () { self.save(); self.runPendingStart(); });
     $('#welcome').addEventListener('close', function () { Theme.go(Theme.ageOf(self.state.age)); });
-    $('#welcome-form').elements.age.addEventListener('change', function () { Theme.go(Theme.ageOf(this.value)); });
+    $('#welcome-form').elements.age.addEventListener('change', function () {
+      Theme.go(Theme.ageOf(this.value));
+      // Sevi grows into the form of the age just picked
+      $('#welcome-bobik').innerHTML = self.bobik('hello', 'bust', this.value);
+    });
 
     $('#profile-chip').addEventListener('click', function () { self.openWelcome(); });
     $('#rename-btn').addEventListener('click', function () { self.openWelcome(); });
