@@ -1,7 +1,8 @@
 'use strict';
 
 // Общий с сайтом школы ключ: сайт создаёт профиль при входе и показывает прогресс на главной
-var STORAGE_KEY = 'bloop-cabinet-v1';
+// (old key names are migrated by js/migrate.js in <head>, before first paint)
+var STORAGE_KEY = 'sevalumo-cabinet-v1';
 
 // Сайт школы. На GitHub Pages это соседний репозиторий kids-ai-courses на том же домене,
 // при локальном запуске кабинет лежит в подпапке сайта — тогда сайт на уровень выше.
@@ -36,7 +37,6 @@ var app = {
   init: function () {
     $$('[data-site-link]').forEach(function (a) { a.href = SITE_URL; });
     $$('[data-catalog-link]').forEach(function (a) { a.href = SITE_URL + 'courses/'; });
-    $('#shapes').innerHTML = Theme.shapes();
     this.loadCatalog();
 
     // ?start=<курс> — пришли с сайта по кнопке «Play now»
@@ -170,7 +170,7 @@ var app = {
     if (site.length) {
       more = '<div class="site-courses">' + site.map(function (c) {
         var href = c.playable && !c.url ? '?start=' + encodeURIComponent(c.id) : SITE_URL + c.url;
-        return '<article class="site-course"><span class="course__age">' + esc(BLOOP_CATALOG.courseAges(c)) + '</span>' +
+        return '<article class="site-course"><span class="course__age">' + esc(SEVALUMO_CATALOG.courseAges(c)) + '</span>' +
           '<h3>' + esc(c.title) + '</h3><p>' + esc(c.desc) + '</p>' +
           '<a class="btn btn--primary" href="' + esc(href) + '" aria-label="Start ' + esc(c.title) + '">Start</a></article>';
       }).join('') + '</div>' +
@@ -223,8 +223,8 @@ var app = {
   // loaded from SITE_URL by loadCatalog(). Without it (offline, blocked, not deployed) this is empty and the
   // old "no courses yet" text with a link to the site is shown instead.
   siteCourses: function (group) {
-    if (typeof BLOOP_CATALOG === 'undefined') return [];
-    var C = BLOOP_CATALOG;
+    if (typeof SEVALUMO_CATALOG === 'undefined') return [];
+    var C = SEVALUMO_CATALOG;
     return C.COURSES.filter(function (c) {
       var g = C.groupOf(c);
       return g && g.id === group.id && (c.url || c.playable);
