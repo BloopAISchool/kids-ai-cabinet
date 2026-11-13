@@ -9,7 +9,7 @@
     return {
       version: 1,
       name: name || 'Explorer',
-      palette: palette || 'auto', // 'auto': Sevi wears the colours of the child's age channel
+      palette: palette || 'auto', // unused since Sevi S7 (fixed colours); kept so old saved profiles and readers stay compatible
       xp: 0,
       correct: 0,
       answered: 0,

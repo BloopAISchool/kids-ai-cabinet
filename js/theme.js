@@ -1,6 +1,6 @@
 'use strict';
 
-// Age theme of Sevalumo: the same colour stops, shapes and morphing Sevi as the parent site
+// Age theme of Sevalumo: the same colour stops and shapes as the parent site; Sevi's age form is chosen in bobik.js from the same age group
 // (kids-ai-courses/designs/parents/channel/channel.js). Keep STOPS and paint() in sync with it.
 // 6-8 is bright and playful, 15-17 is calm and dark. The cabinet paints the middle age of the child's group.
 var Theme = (function () {
@@ -41,7 +41,7 @@ var Theme = (function () {
 
   function mix(a, b, f) { return f <= 0 ? a : f >= 1 ? b : 'color-mix(in oklch, ' + a + ' ' + ((1 - f) * 100).toFixed(1) + '%, ' + b + ')'; }
   function lerp(a, b, f) { return a + (b - a) * f; }
-  var COLOR_KEYS = { bg: 'bg', acc: 'acc', s1: 's1', s2: 's2', s3: 's3', body: 'rb-body', accent: 'rb-accent', screen: 'rb-screen', glow: 'rb-glow', joint: 'rb-joint' };
+  var COLOR_KEYS = { bg: 'bg', acc: 'acc', s1: 's1', s2: 's2', s3: 's3' };
 
   function paint(age) {
     var v = Math.min(3, Math.max(0, (age - 7) / 3));
@@ -98,11 +98,6 @@ var Theme = (function () {
       return '<span class="shape' + (p.mob ? '' : ' shape--wide') + '" style="left:' + p.x + ';top:' + p.y + ';width:' + p.w + 'px;height:' + p.w + 'px;--life:' + p.life + ';--r:' + p.r + 'deg;--C:var(--' + p.c + ')">' + SHAPE_SVG[p.k] + '</span>';
     }).join('');
   }
-
-  // Sevi drawn with the theme colours (--rb-* tokens), so he changes with the age like on the parent site
-  var css = document.createElement('style');
-  css.textContent = CSS;
-  document.head.appendChild(css);
 
   dark.addEventListener('change', function () { if (ageNow !== null) paint(ageNow); });
 

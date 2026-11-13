@@ -9,7 +9,7 @@ var SITE_URL = location.hostname.endsWith('github.io') ? '/kids-ai-courses/' : '
 var REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // Course cards cycle three theme tokens that stay distinct on every age channel (same as the parent site)
-var THUMB = ['acc', 'rb-body', 'rb-joint'];
+var THUMB = ['acc', 's2', 'bg'];
 
 var $ = function (sel, root) { return (root || document).querySelector(sel); };
 var $$ = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
@@ -37,6 +37,7 @@ var app = {
     $$('[data-site-link]').forEach(function (a) { a.href = SITE_URL; });
     $$('[data-catalog-link]').forEach(function (a) { a.href = SITE_URL + 'courses/'; });
     $('#shapes').innerHTML = Theme.shapes();
+    this.loadCatalog();
 
     // ?start=<курс> — пришли с сайта по кнопке «Play now»
     var params = new URLSearchParams(location.search);
@@ -98,8 +99,11 @@ var app = {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(this.state)); } catch (e) { /* без хранилища прогресс живёт до перезагрузки */ }
   },
 
-  bobik: function (pose, palette) {
-    return bob(STATES[pose] || STATES.neutral, PALETTES[palette || this.state.palette] || null);
+  // Sevi S7 in the form of the child's age track (Explorers 6-8 ... Pros 15-17; Explorers until an age is picked).
+  // crop: 'full' (whole figure: hero) or 'bust' (head and torso with the chest logo: welcome, quiz, result, thumbs).
+  bobik: function (pose, crop, groupId) {
+    Bobik.setForm(Bobik.formForGroup(groupId || (this.state && this.state.age)));
+    return bob(STATES[pose] || STATES.neutral, null, null, crop || 'full');
   },
 
   today: function () { return Game.dayKey(); },
@@ -110,7 +114,7 @@ var app = {
     var lvl = Game.levelFor(s.xp);
     var st = Game.stats(s);
 
-    $('#logo-bobik').innerHTML = this.bobik('neutral');
+    $('#logo-bobik').innerHTML = Bobik.badge(34);
     if (!this.petting) $('#hero-bobik').innerHTML = this.bobik(st.lessonsDone ? 'joy' : 'hello');
     $('#chip-name').textContent = s.name;
     $('#chip-level').textContent = 'Lv ' + lvl.level;
@@ -134,7 +138,6 @@ var app = {
     this.renderBadges();
     this.renderDaily();
     this.renderWeek();
-    this.renderSwatches();
   },
 
   renderStats: function (st) {
@@ -163,9 +166,22 @@ var app = {
         '<button class="btn btn--primary" type="button" data-open-welcome>Choose my age</button></div>';
       return;
     }
-    var more = group.more
-      ? '<div class="course-empty"><p>' + group.more.text + '</p><a class="btn btn--primary" href="' + SITE_URL + group.more.href + '">' + group.more.link + '</a></div>'
-      : '';
+    // Real school-site courses for this age (same list and same rule as the site's courses/ page)
+    var site = this.siteCourses(group);
+    var more;
+    if (site.length) {
+      more = '<div class="site-courses">' + site.map(function (c) {
+        var href = c.playable && !c.url ? '?start=' + encodeURIComponent(c.id) : SITE_URL + c.url;
+        return '<article class="site-course"><span class="course__age">' + esc(BLOOP_CATALOG.courseAges(c)) + '</span>' +
+          '<h3>' + esc(c.title) + '</h3><p>' + esc(c.desc) + '</p>' +
+          '<a class="btn btn--primary" href="' + esc(href) + '" aria-label="Start ' + esc(c.title) + '">Start</a></article>';
+      }).join('') + '</div>' +
+      '<p class="site-courses__all"><a class="link-btn" href="' + SITE_URL + 'courses/#age-' + group.id + '">See all courses</a></p>';
+    } else {
+      more = group.more
+        ? '<div class="course-empty"><p>' + group.more.text + '</p><a class="btn btn--primary" href="' + SITE_URL + group.more.href + '">' + group.more.link + '</a></div>'
+        : '';
+    }
 
     $('#course-list').innerHTML = more + mine.map(function (c, k) {
       var cs = Game.courseStatus(s, c);
@@ -191,7 +207,7 @@ var app = {
 
       return '<article class="course' + (cs.done ? ' is-complete' : '') + '" id="course-' + c.id + '">' +
         '<div class="course__head">' +
-          '<div class="course__thumb" style="--C:var(--' + THUMB[k % 3] + ')">' + self.bobik(cs.done ? 'victory' : c.pose, 'auto') + '</div>' +
+          '<div class="course__thumb" style="--C:var(--' + THUMB[k % 3] + ')" aria-hidden="true">' + self.bobik(cs.done ? 'victory' : c.pose, 'bust') + '</div>' +
           '<div class="course__info">' +
             '<span class="course__age">' + c.age + '</span>' +
             '<h3>' + esc(c.title) + '</h3>' +
@@ -203,6 +219,30 @@ var app = {
         '<ol class="path">' + nodes + '</ol>' +
       '</article>';
     }).join('');
+  },
+
+  // Courses of the school site for this age group. The list lives in the site's catalog.js (one source of truth),
+  // loaded from SITE_URL by loadCatalog(). Without it (offline, blocked, not deployed) this is empty and the
+  // old "no courses yet" text with a link to the site is shown instead.
+  siteCourses: function (group) {
+    if (typeof BLOOP_CATALOG === 'undefined') return [];
+    var C = BLOOP_CATALOG;
+    return C.COURSES.filter(function (c) {
+      var g = C.groupOf(c);
+      return g && g.id === group.id && (c.url || c.playable);
+    });
+  },
+
+  loadCatalog: function () {
+    var self = this, tag = document.createElement('script');
+    tag.src = SITE_URL + 'catalog.js';
+    // Only the course list changes, and only when the catalog has courses for this age:
+    // a full render() would redraw Sevi and the stats a second time for nothing.
+    tag.onload = function () {
+      var group = self.state && findAgeGroup(self.state.age);
+      if (group && self.siteCourses(group).length) self.renderCourses();
+    };
+    document.head.appendChild(tag); // on error: nothing to do, the fallback text stays
   },
 
   starIcons: function (n) {
@@ -257,11 +297,6 @@ var app = {
     }).join('');
   },
 
-  renderSwatches: function () {
-    var pal = this.state.palette;
-    $$('.swatch').forEach(function (sw) { sw.setAttribute('aria-checked', String(sw.dataset.palette === pal)); });
-  },
-
   // ---------- Знакомство и настройки ----------
   openWelcome: function () {
     var dlg = $('#welcome');
@@ -271,16 +306,9 @@ var app = {
     var pending = !this.state.age && this.pendingStart && Game.findCourse(this.pendingStart);
     var pendingGroup = pending && AGE_GROUPS.filter(function (g) { return pending.ages[0] >= g.min && pending.ages[1] <= g.max; })[0];
     form.elements.age.value = findAgeGroup(this.state.age) ? this.state.age : (pendingGroup ? pendingGroup.id : '');
-    $('#welcome-bobik').innerHTML = this.bobik('hello');
+    $('#welcome-bobik').innerHTML = this.bobik('hello', 'bust', form.elements.age.value);
     if (!dlg.open) dlg.showModal();
     if (form.elements.age.value) Theme.go(Theme.ageOf(form.elements.age.value));
-  },
-
-  setPalette: function (name) {
-    this.state.palette = name;
-    this.save();
-    this.render();
-    if ($('#welcome').open) $('#welcome-bobik').innerHTML = this.bobik('delight');
   },
 
   // Сервера пока нет: прогресс живёт только в этом браузере, поэтому выход его стирает
@@ -344,7 +372,7 @@ var app = {
     $('#quiz-inner').innerHTML = this.quizTop() +
       '<p class="quiz__lesson">' + esc(qz.course.title) + ' · ' + esc(qz.lesson.title) + '</p>' +
       '<div class="quiz__ask">' +
-        '<div class="quiz__bot" id="quiz-bobik">' + this.bobik('think') + '</div>' +
+        '<div class="quiz__bot" id="quiz-bobik" aria-hidden="true">' + this.bobik('think', 'bust') + '</div>' +
         '<h2 class="quiz__q" id="quiz-title">' + esc(q.q) + '</h2>' +
       '</div>' +
       '<div class="options" role="group" aria-label="Answers">' +
@@ -379,7 +407,7 @@ var app = {
     var comboLine = ok && qz.combo >= XP_RULES.comboFrom ? '<span class="feedback__combo">🔥 ' + qz.combo + ' in a row! +' + XP_RULES.combo + ' bonus</span>' : '';
     var last = qz.i === qz.questions.length - 1;
 
-    $('#quiz-bobik').innerHTML = this.bobik(ok ? (qz.combo >= 3 ? 'delight' : 'joy') : 'sad');
+    $('#quiz-bobik').innerHTML = this.bobik(ok ? (qz.combo >= 3 ? 'delight' : 'joy') : 'sad', 'bust');
     $('#quiz-inner').querySelector('.quiz__top').outerHTML = this.quizTop();
     var fb = $('#feedback');
     fb.className = 'feedback is-shown ' + (ok ? 'is-ok' : 'is-bad');
@@ -455,7 +483,7 @@ var app = {
     $('#quiz-inner').innerHTML =
       '<div class="quiz__top"><button class="quiz__close" type="button" data-quiz="close" aria-label="Close">✕</button></div>' +
       '<div class="result">' +
-        '<div class="result__bot">' + this.bobik(pose) + '</div>' +
+        '<div class="result__bot" aria-hidden="true">' + this.bobik(pose, 'bust') + '</div>' +
         '<div class="result__stars" aria-label="' + r.stars + ' of 3 stars">' + this.starIcons(r.stars) + '</div>' +
         '<h2 id="quiz-title">' + heading + '</h2>' +
         '<p class="result__sub">' + sub + '</p>' +
@@ -495,7 +523,7 @@ var app = {
     if (REDUCED_MOTION) return;
     var box = $('#quiz').open ? $('#quiz') : $('#confetti');
     var css = getComputedStyle(document.documentElement);
-    var colors = ['--acc', '--s1', '--s2', '--rb-body', '--rb-joint', '--bg'].map(function (v) { return css.getPropertyValue(v).trim() || '#FFCE3A'; });
+    var colors = ['--acc', '--s1', '--s2', '--bg'].map(function (v) { return css.getPropertyValue(v).trim() || '#FFCE3A'; });
     for (var i = 0; i < 60; i++) {
       var p = document.createElement('i');
       p.className = 'confetti__piece';
@@ -519,9 +547,6 @@ var app = {
       if (start && !start.disabled) self.startLesson(start.dataset.course, Number(start.dataset.lesson));
 
       if (e.target.closest('[data-open-welcome]')) self.openWelcome();
-
-      var sw = e.target.closest('.swatch');
-      if (sw) self.setPalette(sw.dataset.palette);
     });
 
     $('#quiz').addEventListener('click', function (e) {
@@ -564,8 +589,16 @@ var app = {
       self.runPendingStart();
     });
     $('#welcome').addEventListener('cancel', function () { self.save(); self.runPendingStart(); });
-    $('#welcome').addEventListener('close', function () { Theme.go(Theme.ageOf(self.state.age)); });
-    $('#welcome-form').elements.age.addEventListener('change', function () { Theme.go(Theme.ageOf(this.value)); });
+    $('#welcome').addEventListener('close', function () {
+      Theme.go(Theme.ageOf(self.state.age));
+      // closed without saving: Sevi's form goes back from the previewed age to the saved one
+      Bobik.setForm(Bobik.formForGroup(self.state.age));
+    });
+    $('#welcome-form').elements.age.addEventListener('change', function () {
+      Theme.go(Theme.ageOf(this.value));
+      // Sevi grows into the form of the age just picked
+      $('#welcome-bobik').innerHTML = self.bobik('hello', 'bust', this.value);
+    });
 
     $('#profile-chip').addEventListener('click', function () { self.openWelcome(); });
     $('#rename-btn').addEventListener('click', function () { self.openWelcome(); });
