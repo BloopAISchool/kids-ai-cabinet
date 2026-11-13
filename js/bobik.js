@@ -1,182 +1,178 @@
 'use strict';
 
-var ZONES = ['body', 'accent', 'screen', 'glow', 'joint'];
+// Sevi, S7 Hybrid, as the one drawing behind the old bobik.js API.
+//
+// The procedural robot that used to live here is gone. Every call now returns the final art from brand/sevi/
+// (never redrawn, never edited): the age form for the page's track, cropped, with the old state names mapped to
+// a CSS motion on that form (S7 has no per-emotion drawings).
+//
+//   bob(stateObj, palette, size, crop)   -> HTML string (palette is ignored, kept so old call sites still work)
+//   renderBobik(stateId, palette, size)  -> same, by state id
+//   STATES / EMOTIONS / POSES            -> the state ids the course apps and sevi-pose.js use
+//   setForm('explorers'|'inventors'|'creators'|'pros'), setTier(0..3)
+//
+// Which form: setForm()/setTier(), else <html data-sevi-form="...">, else Creators (ages 12-14).
+// The cabinet adds: formForGroup('9-11') maps the child's age track to a form, badge(px) is the ink head badge for the
+// logo size. Assets live in ../brand/sevi/ relative to this file (document.currentScript), so the cabinet works
+// standalone and when served under /kids-ai-cabinet/ inside the main site.
 
-var PALETTES = {
-  mint:  { body: '#7AD3C1', accent: '#FFD36E', screen: '#2F3E6B', glow: '#B6F7E6', joint: '#F59DB0' },
-  sky:   { body: '#8EC5FF', accent: '#FFC15E', screen: '#2D3A63', glow: '#C8F3FF', joint: '#FF9E8A' },
-  lav:   { body: '#B7A6F2', accent: '#FFDA7A', screen: '#3A2F63', glow: '#E4DBFF', joint: '#7ED9C4' },
-  peach: { body: '#FFB28E', accent: '#7FD6C7', screen: '#43325E', glow: '#FFE9C7', joint: '#8FB8FF' }
+var Bobik = (function () {
+var FORMS = ['explorers', 'inventors', 'creators', 'pros'];
+
+// Crop boxes in the 400x400 art space. full = the whole figure, bust = head and torso (small stickers, avatars).
+// Measured from the painted bounds of each *-clear.svg file (getBBox) plus a few units of air.
+// The bust always ends about 12 units below the Dial O ring on the chest (ring bottom: explorers 302, inventors 275,
+// creators 251, pros 231), so the logo is never cut in half, the same framing as brand/sevi/mark.svg.
+var CROPS = {
+  explorers: { full: [102, 98, 216, 292], bust: [102, 98, 216, 216] },
+  inventors: { full: [104, 74, 208, 312], bust: [104, 74, 208, 214] },
+  creators:  { full: [110, 52, 194, 334], bust: [110, 52, 194, 212] },
+  pros:      { full: [114, 36, 170, 350], bust: [114, 36, 170, 208] }
 };
 
-var CSS =
-  '.pb{fill:var(--rb-body)}.pa{fill:var(--rb-accent)}.ps{fill:var(--rb-screen)}' +
-  '.pg{fill:var(--rb-glow)}.pj{fill:var(--rb-joint)}' +
-  '.sg{fill:none;stroke:var(--rb-glow);stroke-width:5;stroke-linecap:round}' +
-  '.sj{fill:none;stroke:var(--rb-joint);stroke-width:6;stroke-linecap:round}' +
-  '.sa{fill:none;stroke:var(--rb-joint);stroke-width:26;stroke-linecap:round}' +
-  '.sac{fill:none;stroke:var(--rb-accent);stroke-width:4;stroke-linecap:round;stroke-linejoin:round}' +
-  '.hl{fill:#fff;fill-opacity:.3}.sh{fill:#000;fill-opacity:.08}';
-
-function ell(x, y, rx, ry) {
-  return '<ellipse class="pg" cx="' + x + '" cy="' + y + '" rx="' + rx + '" ry="' + ry + '"/>';
-}
-function arc(d, w) {
-  return '<path class="sg" style="stroke-width:' + (w || 6) + '" d="' + d + '"/>';
-}
-function heart(x, y, s) {
-  return '<path class="pj" transform="translate(' + x + ' ' + y + ') scale(' + s + ')" d="M0 13 C-16 -2 -8 -14 0 -5 C8 -14 16 -2 0 13 Z"/>';
-}
-function star(x, y, r) {
-  var q = r * 0.3;
-  return '<path class="pa" d="M' + x + ' ' + (y - r) + ' L' + (x + q) + ' ' + (y - q) + ' L' + (x + r) + ' ' + y +
-    ' L' + (x + q) + ' ' + (y + q) + ' L' + x + ' ' + (y + r) + ' L' + (x - q) + ' ' + (y + q) +
-    ' L' + (x - r) + ' ' + y + ' L' + (x - q) + ' ' + (y - q) + ' Z"/>';
-}
-function dot(x, y, r) {
-  return '<circle class="pa" cx="' + x + '" cy="' + y + '" r="' + r + '"/>';
-}
-function arm(d) {
-  return '<path class="sa" d="' + d + '"/>';
-}
-
-var EYES = {
-  n: ell(124, 114, 11, 14) + ell(176, 114, 11, 14),
-  h: arc('M110 120 Q124 100 138 120') + arc('M162 120 Q176 100 190 120'),
-  o: '<circle class="pg" cx="124" cy="112" r="15"/><circle class="ps" cx="124" cy="112" r="6"/>' +
-     '<circle class="pg" cx="176" cy="112" r="15"/><circle class="ps" cx="176" cy="112" r="6"/>',
-  s: ell(124, 120, 10, 12) + ell(176, 120, 10, 12) + arc('M108 100 L138 90', 5) + arc('M192 100 L162 90', 5),
-  w: ell(124, 114, 11, 14) + arc('M162 118 Q176 102 190 118'),
-  l: heart(124, 112, 1.15) + heart(176, 112, 1.15),
-  z: arc('M110 112 Q124 126 138 112') + arc('M162 112 Q176 126 190 112'),
-  t: ell(130, 108, 10, 13) + ell(182, 108, 10, 13) + arc('M166 88 Q182 80 196 90', 4)
-};
-
-var MOUTHS = {
-  smile: arc('M132 140 Q150 156 168 140', 5),
-  open:  '<path class="pg" d="M130 138 Q150 166 170 138 Z"/><ellipse class="pj" cx="150" cy="147" rx="8" ry="4"/>',
-  o:     '<ellipse class="pg" cx="150" cy="148" rx="8" ry="10"/>',
-  tiny:  '<ellipse class="pg" cx="150" cy="146" rx="5" ry="6"/>',
-  frown: arc('M134 152 Q150 138 166 152', 5),
-  side:  arc('M138 146 Q152 138 166 144', 5)
-};
-
-var ANTENNAS = {
-  up:    '<path class="sj" d="M150 44 L150 22"/><circle class="pa" cx="150" cy="16" r="11"/>',
-  tall:   '<path class="sj" d="M150 44 L150 26"/><circle class="pa" cx="150" cy="16" r="14"/>',
-  droop: '<path class="sj" d="M150 44 Q150 26 134 24"/><circle class="pa" cx="127" cy="32" r="10"/>',
-  lean:  '<path class="sj" d="M150 44 Q150 30 164 24"/><circle class="pa" cx="170" cy="20" r="11"/>',
-  idea:  '<path class="sj" d="M150 44 L150 30"/><circle class="pa" cx="150" cy="20" r="13"/>' +
-         '<path class="sac" d="M126 8 L134 16 M174 8 L166 16 M114 24 L124 25 M186 24 L176 25"/>'
-};
-
-var FEET = '<ellipse class="pj" cx="120" cy="252" rx="24" ry="12"/><ellipse class="pj" cx="180" cy="252" rx="24" ry="12"/>';
-var ARM_L = 'M100 198 L90 222';
-var ARM_R = 'M200 198 L210 222';
-var TEAR = '<path class="pg" style="fill-opacity:.75" d="M112 134 Q105 144 112 150 Q119 144 112 134 Z"/>';
-
-function S(id, n, d, p) {
-  p.id = id; p.n = n; p.d = d;
-  return p;
-}
-
+// Old state -> what it means and the CSS motion on the form (class sevi-s7--<id>, defined in CSS below).
+// S7 art has one pose per age, so the feeling is carried by motion: hop, tilt, lean, pop. Nothing is acted with the face.
+function S(id, d, p) { p = p || {}; p.id = id; p.d = d; return p; }
 var STATES = {
-  neutral: S('neutral', 'Обычный', 'базовое состояние', { eyes: 'n', mouth: 'smile' }),
-  joy: S('joy', 'Радость', 'верный ответ', {
-    eyes: 'h', mouth: 'open', L: 'M100 198 L72 214', R: 'M200 198 L228 214',
-    ex: star(40, 70, 9) + star(262, 58, 7)
-  }),
-  surprise: S('surprise', 'Удивление', 'неожиданный результат', {
-    eyes: 'o', mouth: 'o', ant: 'tall', body: 'translate(0 -6)', sh: 66,
-    L: 'M100 198 Q66 196 60 170', R: 'M200 198 Q234 196 240 170',
-    ex: '<path class="sac" d="M52 40 L66 50 M38 62 L56 68 M248 40 L234 50 M262 62 L244 68"/>'
-  }),
-  sad: S('sad', 'Грусть', 'ошибка, пробуем снова', {
-    eyes: 's', mouth: 'frown', ant: 'droop', face: TEAR
-  }),
-  think: S('think', 'Задумался', 'ждёт ответ нейросети', {
-    eyes: 't', mouth: 'side', ant: 'lean', tilt: -5,
-    ex: dot(254, 44, 4) + dot(266, 30, 6) + dot(282, 12, 8)
-  }),
-  delight: S('delight', 'Восторг', 'новый уровень', {
-    eyes: 'l', mouth: 'open', L: 'M100 198 L74 210', R: 'M200 198 L226 210',
-    ex: heart(52, 58, 0.9) + heart(250, 46, 0.7) + heart(266, 84, 0.55)
-  }),
-  wink: S('wink', 'Подмигивает', 'подсказка', {
-    eyes: 'w', mouth: 'open', R: 'M200 198 Q232 202 238 180',
-    ex: star(264, 74, 9)
-  }),
-  hello: S('hello', 'Привет', 'начало урока', {
-    eyes: 'n', mouth: 'open', R: 'M200 198 Q240 202 254 158',
-    ex: '<path class="sac" d="M272 138 Q282 152 276 168"/><path class="sac" d="M284 128 Q296 148 288 172"/>'
-  }),
-  victory: S('victory', 'Победа', 'курс пройден', {
-    eyes: 'h', mouth: 'open', body: 'translate(0 -14)', sh: 50,
-    L: 'M100 198 Q34 210 36 96', R: 'M200 198 Q266 210 264 96',
-    ex: star(26, 58, 9) + star(276, 50, 9)
-  }),
-  point: S('point', 'Показывает', 'обращает внимание', {
-    eyes: 'n', mouth: 'smile', R: 'M200 198 Q244 192 266 170',
-    ex: star(280, 118, 12)
-  }),
-  idea: S('idea', 'Идея', 'озарение', {
-    eyes: 'n', mouth: 'open', ant: 'idea', R: 'M200 198 Q262 206 262 104'
-  }),
-  run: S('run', 'Бежит', 'загрузка, вперёд', {
-    eyes: 'n', mouth: 'open', body: 'rotate(7 150 262)',
-    feet: '<ellipse class="pj" cx="110" cy="238" rx="24" ry="12" transform="rotate(-18 110 238)"/>' +
-          '<ellipse class="pj" cx="188" cy="254" rx="24" ry="12"/>',
-    L: 'M100 198 Q76 212 62 238', R: 'M200 198 Q238 196 250 172',
-    ex: '<path class="sac" d="M14 118 L40 118 M6 148 L34 148 M16 178 L38 178"/>'
-  }),
-  sleep: S('sleep', 'Спит', 'пауза, отдых', {
-    eyes: 'z', mouth: 'tiny', ant: 'droop', tilt: -8,
-    ex: '<path class="sac" d="M246 34 H262 L246 52 H262"/>' +
-        '<path class="sac" style="stroke-width:3.5" d="M270 10 H281 L270 22 H281"/>'
-  })
+  neutral:  S('neutral',  'default, breathing'),
+  joy:      S('joy',      'right answer: a small hop'),
+  surprise: S('surprise', 'unexpected result: a quick pop'),
+  sad:      S('sad',      'wrong answer, try again: a slow lean and a droop (no tears, no red)'),
+  think:    S('think',    'waiting for the AI: a slow sway'),
+  delight:  S('delight',  'new level: a bigger hop with a turn'),
+  wink:     S('wink',     'a hint: a small nod'),
+  hello:    S('hello',    'start of a lesson: a friendly sway (the art already waves)'),
+  victory:  S('victory',  'course finished: two big jumps'),
+  point:    S('point',    'look here: a lean towards the content'),
+  idea:     S('idea',     'the aha moment: a pop and a warm glow'),
+  run:      S('run',      'loading, on our way: a forward lean and a trot'),
+  sleep:    S('sleep',    'paused: tilted, slow, dimmed'),
+  oops:     S('oops',     'head tilt after a miss (6-8), never sad')
 };
-
 var EMOTIONS = ['joy', 'surprise', 'sad', 'think', 'delight', 'wink'];
 var POSES = ['hello', 'victory', 'point', 'idea', 'run', 'sleep'];
 
-function bob(o, pal, size) {
-  var g = '<ellipse class="sh" cx="150" cy="266" rx="' + (o.sh || 74) + '" ry="9"/>';
-  g += '<g' + (o.body ? ' transform="' + o.body + '"' : '') + '>';
-  g += (o.feet || FEET);
-  g += '<rect class="pb" x="104" y="168" width="92" height="82" rx="36"/>' +
-       '<circle class="pa" cx="150" cy="210" r="15"/><circle class="ps" cx="150" cy="210" r="6"/>';
-  g += '<g' + (o.tilt ? ' transform="rotate(' + o.tilt + ' 150 178)"' : '') + '>';
-  g += '<rect class="pa" x="46" y="92" width="22" height="52" rx="11"/>' +
-       '<rect class="pa" x="232" y="92" width="22" height="52" rx="11"/>';
-  g += ANTENNAS[o.ant || 'up'];
-  g += '<rect class="pb" x="60" y="40" width="180" height="140" rx="64"/>' +
-       '<rect class="ps" x="80" y="70" width="140" height="94" rx="42"/>';
-  g += EYES[o.eyes || 'n'] + MOUTHS[o.mouth || 'smile'];
-  g += '<circle class="pj" cx="100" cy="142" r="8"/><circle class="pj" cx="200" cy="142" r="8"/>';
-  g += (o.face || '');
-  g += '<ellipse class="hl" cx="100" cy="58" rx="24" ry="8" transform="rotate(-20 100 58)"/>';
-  g += '</g>';
-  g += arm(o.L || ARM_L) + arm(o.R || ARM_R);
-  g += '</g>' + (o.ex || '');
+var CSS =
+  '.sevi-s7{display:block;line-height:0;transform-origin:50% 100%}' +
+  '.sevi-s7 svg{display:block;width:100%;height:auto;overflow:hidden}' +
+  // static poses: a tilt is not motion, so it stays under prefers-reduced-motion
+  '.sevi-s7--sad{transform:rotate(-5deg) translateY(2%)}' +
+  '.sevi-s7--oops{transform:rotate(-8deg)}' +
+  '.sevi-s7--think{transform:rotate(-3deg)}' +
+  '.sevi-s7--point{transform:translateX(4%) rotate(3deg)}' +
+  '.sevi-s7--run{transform:rotate(6deg)}' +
+  '.sevi-s7--sleep{transform:rotate(-8deg);filter:saturate(.8) brightness(.96)}' +
+  '.sevi-s7--idea{filter:drop-shadow(0 0 5px #FFCE3A)}' +
+  '@media (prefers-reduced-motion:no-preference){' +
+  '.sevi-s7--neutral{animation:sevi-s7-breathe 3.6s ease-in-out infinite}' +
+  '.sevi-s7--hello{animation:sevi-s7-sway 1.6s ease-in-out 2}' +
+  '.sevi-s7--joy{animation:sevi-s7-hop .7s ease-out 2}' +
+  '.sevi-s7--delight{animation:sevi-s7-hop-turn .9s ease-out 2}' +
+  '.sevi-s7--victory{animation:sevi-s7-jump .9s ease-out 2}' +
+  '.sevi-s7--surprise{animation:sevi-s7-pop .45s ease-out 1}' +
+  '.sevi-s7--wink{animation:sevi-s7-nod .8s ease-in-out 1}' +
+  '.sevi-s7--think{animation:sevi-s7-ponder 2.8s ease-in-out infinite}' +
+  '.sevi-s7--point{animation:sevi-s7-lean 1.6s ease-in-out infinite alternate}' +
+  '.sevi-s7--idea{animation:sevi-s7-pop .6s ease-out 1}' +
+  '.sevi-s7--run{animation:sevi-s7-trot .5s ease-in-out infinite alternate}' +
+  '.sevi-s7--sleep{animation:sevi-s7-breathe 5s ease-in-out infinite}' +
+  '}' +
+  '@keyframes sevi-s7-breathe{50%{transform:scale(1.02,1.03)}}' +
+  '@keyframes sevi-s7-sway{0%,100%{transform:rotate(0)}30%{transform:rotate(-4deg)}70%{transform:rotate(4deg)}}' +
+  '@keyframes sevi-s7-hop{40%{transform:translateY(-12%)}70%{transform:translateY(0) scale(1.03,.97)}}' +
+  '@keyframes sevi-s7-hop-turn{40%{transform:translateY(-14%) rotate(-6deg)}70%{transform:translateY(0) rotate(4deg)}}' +
+  '@keyframes sevi-s7-jump{35%{transform:translateY(-18%) rotate(-3deg)}65%{transform:translateY(0) scale(1.04,.96)}}' +
+  '@keyframes sevi-s7-pop{40%{transform:scale(1.1)}100%{transform:scale(1)}}' +
+  '@keyframes sevi-s7-nod{40%{transform:rotate(-5deg) translateY(2%)}100%{transform:rotate(0)}}' +
+  '@keyframes sevi-s7-ponder{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}' +
+  '@keyframes sevi-s7-lean{from{transform:translateX(2%) rotate(1deg)}to{transform:translateX(6%) rotate(4deg)}}' +
+  '@keyframes sevi-s7-trot{from{transform:rotate(5deg) translateY(0)}to{transform:rotate(7deg) translateY(-4%)}}';
 
-  var head = '<svg';
-  if (pal) {
-    head += ' xmlns="http://www.w3.org/2000/svg" style="' +
-      ZONES.map(function (k) { return '--rb-' + k + ':' + pal[k]; }).join(';') + '"';
-  }
-  head += ' viewBox="0 -12 300 292" width="' + (size || '100%') + '" role="img" aria-label="Sevi: ' + o.id + '">';
-  return head + '<title>' + o.id + '</title>' + (pal ? '<style>' + CSS + '</style>' : '') + g + '</svg>';
+var form = 'creators';
+var formPinned = false;
+// <script src="js/bobik.js"> -> "<dir of js>/brand/sevi/". Falls back to a path relative to the page.
+var BASE = (function () {
+  try {
+    var s = document.currentScript && document.currentScript.src;
+    if (s) return s.replace(/[^\/]*(\?.*)?$/, '') + '../brand/sevi/';
+  } catch (e) { /* node */ }
+  return '../brand/sevi/';
+})();
+
+// Age track id of the profile ('6-8', '9-11', '12-14', '15-17', old '14-17') -> Sevi form. Unknown -> Creators.
+var GROUP_FORM = { '6-8': 'explorers', '9-11': 'inventors', '12-14': 'creators', '15-17': 'pros', '14-17': 'pros' };
+function formForGroup(id) { return GROUP_FORM[id] || 'creators'; }
+
+// Ink head badge for small sizes (logo): a dark circle with the head mark, so the cream helmet reads on any header.
+function badge(size) {
+  var px = size || 34;
+  return '<span class="sevi-badge" style="width:' + px + 'px;height:' + px + 'px"><img src="' + BASE +
+    'mark-head-badge.svg" alt="Sevi" width="200" height="200" decoding="async"></span>';
 }
 
-function renderBobik(stateId, palette, size) {
+function currentForm() {
+  if (formPinned) return form;
+  try {
+    var a = document.documentElement.getAttribute('data-sevi-form');
+    if (FORMS.indexOf(a) >= 0) return a;
+  } catch (e) { /* node */ }
+  return form;
+}
+function setForm(f) {
+  if (FORMS.indexOf(f) < 0) throw new Error('Unknown Sevi form: ' + f);
+  form = f; formPinned = true;
+  try { document.documentElement.setAttribute('data-sevi-form', f); } catch (e) { /* node */ }
+}
+function setTier(t) { setForm(FORMS[Math.max(0, Math.min(3, t | 0))]); }
+
+function injectCss() {
+  try {
+    if (!document.getElementById('sevi-s7-css')) {
+      var st = document.createElement('style');
+      st.id = 'sevi-s7-css';
+      st.textContent = CSS;
+      document.head.appendChild(st);
+    }
+  } catch (e) { /* node */ }
+}
+injectCss();
+
+function url(f) { return BASE + 'form-' + f + '-clear.svg'; }
+
+// The stand-alone cropped SVG text for places that cannot use markup with an external <image> (Phaser textures,
+// canvas). Needs the source file text (fetch it with seviSvgText()); returns a self-contained SVG string.
+function cropSvg(svgText, f, crop, w) {
+  var c = CROPS[f][crop || 'full'], h = Math.round(w * c[3] / c[2]);
+  return svgText.replace(/viewBox="[^"]*" width="400" height="400"/, 'viewBox="' + c.join(' ') + '" width="' + w + '" height="' + h + '"');
+}
+function seviSvgText(f) {
+  f = f || currentForm();
+  return fetch(url(f)).then(function (r) { if (!r.ok) throw new Error('Sevi art: ' + r.status); return r.text(); });
+}
+
+function bob(o, pal, size, crop) {
+  var f = currentForm(), c = CROPS[f][crop || 'bust'];
+  var w = size ? (typeof size === 'number' ? size + 'px' : size) : '100%';
+  return '<span class="sevi-s7 sevi-s7--' + o.id + '" style="width:' + w + '">' +
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="' + c.join(' ') + '" role="img" aria-label="Sevi" focusable="false">' +
+    '<title>Sevi</title><image href="' + url(f) + '" x="0" y="0" width="400" height="400"/></svg></span>';
+}
+
+function renderBobik(stateId, palette, size, crop) {
   var st = STATES[stateId];
   if (!st) throw new Error('Unknown Sevi state: ' + stateId);
-  return bob(st, palette || PALETTES.mint, size);
+  return bob(st, palette, size, crop);
 }
 
-if (typeof module !== 'undefined') {
-  module.exports = {
-    ZONES: ZONES, PALETTES: PALETTES, CSS: CSS, STATES: STATES,
-    EMOTIONS: EMOTIONS, POSES: POSES, bob: bob, renderBobik: renderBobik
-  };
-}
+return {
+  FORMS: FORMS, CROPS: CROPS, CSS: CSS, STATES: STATES, EMOTIONS: EMOTIONS, POSES: POSES,
+  formForGroup: formForGroup, badge: badge,
+  bob: bob, renderBobik: renderBobik, setForm: setForm, setTier: setTier, currentForm: currentForm,
+  cropSvg: cropSvg, seviSvgText: seviSvgText
+};
+})();
+
+// Old call sites use these three as plain globals.
+var bob = Bobik.bob, renderBobik = Bobik.renderBobik, STATES = Bobik.STATES, EMOTIONS = Bobik.EMOTIONS, POSES = Bobik.POSES;
+
+if (typeof module !== 'undefined') module.exports = Bobik;
