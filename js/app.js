@@ -9,9 +9,8 @@ var STORAGE_KEY = 'sevalumo-cabinet-v1';
 var SITE_URL = location.hostname.endsWith('github.io') ? '/kids-ai-courses/' : '../';
 var REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-// Course cards cycle three theme tokens that stay distinct on every age channel (same as the parent site).
-// --s2/--bg come from the old channel theme; the skin (../skin.css) has --tint/--paper2 instead, and --acc is the last fallback.
-var THUMB = ['var(--acc)', 'var(--s2, var(--tint, var(--acc)))', 'var(--bg, var(--paper2, var(--acc)))'];
+// Course cards cycle three theme tokens that stay distinct on every age channel (--acc, --s2, --bg are defined in style.css from the skin)
+var THUMB = ['acc', 's2', 'bg'];
 
 var $ = function (sel, root) { return (root || document).querySelector(sel); };
 var $$ = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
@@ -36,7 +35,7 @@ var app = {
   quiz: null,
 
   init: function () {
-    $$('[data-site-link]').forEach(function (a) { a.href = SITE_URL; });
+    $$('[data-site-link]').forEach(function (a) { a.href = a.hasAttribute('data-book') ? SITE_URL + '#book' : SITE_URL; });
     $$('[data-catalog-link]').forEach(function (a) { a.href = SITE_URL + 'courses/'; });
     this.loadCatalog();
 
@@ -46,7 +45,7 @@ var app = {
     if (this.pendingStart) history.replaceState(null, '', location.pathname + location.hash);
 
     $('#welcome-form').elements.age.insertAdjacentHTML('beforeend', AGE_GROUPS.map(function (g) {
-      return '<option value="' + g.id + '">' + g.min + '–' + g.max + ' years</option>';
+      return '<option value="' + g.id + '">' + g.min + '-' + g.max + ' years</option>';
     }).join(''));
 
     this.state = this.load();
@@ -124,6 +123,8 @@ var app = {
     var group = findAgeGroup(s.age);
     $('#channel-tag').textContent = group ? group.name + ' channel, ages ' + group.min + '-' + group.max : 'Pick your age to open your channel';
     if (!$('#welcome').open) Theme.go(Theme.ageOf(s.age));
+    // "Book a free lesson" opens the booking form on the main page at the child's age (its head script reads ?age=)
+    $$('[data-book]').forEach(function (a) { a.href = SITE_URL + (group ? '?age=' + Theme.ageOf(s.age) : '') + '#book'; });
     $('#level-badge').textContent = lvl.level;
     $('#xp-fill').style.width = Math.round(lvl.progress * 100) + '%';
     $('#xpbar').setAttribute('aria-valuenow', Math.round(lvl.progress * 100));
@@ -145,7 +146,7 @@ var app = {
     var s = this.state;
     var tiles = [
       [s.xp, 'total XP'],
-      [s.answered ? Math.round(st.accuracy * 100) + '%' : '—', 'correct answers'],
+      [s.answered ? Math.round(st.accuracy * 100) + '%' : '-', 'correct answers'],
       [st.lessonsDone, 'lessons passed'],
       [s.bestCombo, 'best answer streak']
     ];
@@ -159,7 +160,7 @@ var app = {
     var self = this, s = this.state;
     var group = findAgeGroup(s.age);
     var mine = coursesForAge(s.age);
-    $('#courses-age').textContent = group ? 'Ages ' + group.min + '–' + group.max : '';
+    $('#courses-age').textContent = group ? 'Ages ' + group.min + '-' + group.max : '';
     $('#courses-age-btn').hidden = !group;
 
     if (!group) {
@@ -208,7 +209,7 @@ var app = {
 
       return '<article class="course' + (cs.done ? ' is-complete' : '') + '" id="course-' + c.id + '">' +
         '<div class="course__head">' +
-          '<div class="course__thumb" style="--C:' + THUMB[k % 3] + '" aria-hidden="true">' + self.bobik(cs.done ? 'victory' : c.pose, 'bust') + '</div>' +
+          '<div class="course__thumb" style="--C:var(--' + THUMB[k % 3] + ')" aria-hidden="true">' + self.bobik(cs.done ? 'victory' : c.pose, 'bust') + '</div>' +
           '<div class="course__info">' +
             '<span class="course__age">' + c.age + '</span>' +
             '<h3>' + esc(c.title) + '</h3>' +
@@ -478,8 +479,8 @@ var app = {
         ? '<button class="btn btn--primary" type="button" data-quiz="close">Back to cabinet</button>'
         : '<button class="btn btn--primary" type="button" data-quiz="retry">Try again</button>';
     var secondBtn = r.stars > 0
-      ? '<button class="btn btn--white" type="button" data-quiz="retry">Play again</button>'
-      : '<button class="btn btn--white" type="button" data-quiz="close">Back to cabinet</button>';
+      ? '<button class="btn btn--line" type="button" data-quiz="retry">Play again</button>'
+      : '<button class="btn btn--line" type="button" data-quiz="close">Back to cabinet</button>';
 
     $('#quiz-inner').innerHTML =
       '<div class="quiz__top"><button class="quiz__close" type="button" data-quiz="close" aria-label="Close">✕</button></div>' +

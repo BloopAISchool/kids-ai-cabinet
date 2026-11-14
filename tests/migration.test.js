@@ -85,11 +85,12 @@ test('one key failing does not stop the others', () => {
   assert.equal(r['bloop-age-range'], undefined);
 });
 
-test('index.html runs migrate.js before every storage read (skin script, skin.js, app.js)', () => {
+test('index.html runs migrate.js before every storage read (inline skin script, app.js)', () => {
   const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
   const at = s => { const i = html.indexOf(s); assert.ok(i >= 0, s + ' not found'); return i; };
   const mig = at('<script src="js/migrate.js"></script>');
-  assert.ok(mig < at('<script src="../skin.js"></script>'));
+  assert.ok(mig < at('<script>/* Skin and track before first paint'));
+  assert.ok(!/\.\.\/skin|skin\.js|\bSkin\.|typeof Skin/.test(html), 'cabinet must not depend on files outside its folder');
   assert.ok(mig < html.indexOf('localStorage'));
   assert.ok(mig < at('<script src="js/app.js"></script>'));
   assert.ok(mig < at('</head>'));

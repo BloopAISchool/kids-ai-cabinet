@@ -1,7 +1,7 @@
 'use strict';
 
 // One-time rename of old storage keys. Loaded in <head> before anything reads storage
-// (the first-paint skin script, skin.js, app.js). Each key: copy old -> new if new is absent, then drop old.
+// (the inline first-paint skin script in index.html, app.js). Each key: copy old -> new if new is absent, then drop old.
 // legacy keys: remove after 2027-03
 (function migrateLegacyKeys() {
   var LEGACY_KEYS = [

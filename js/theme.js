@@ -1,19 +1,27 @@
 'use strict';
 
-// Age skin of Sevalumo. The cabinet wears the skin of the main page (index.html) for the child's age group:
-// 6-8 butter and coral, 9-11 mint and orange, 12-14 lavender and violet (kids skin), 15-17 navy and brass (teen skin).
-// The palettes and fonts live in ../skin.css and ../skin-app.css; ../skin.js switches <html data-skin data-track>.
-// This file only maps the child's age group to an age and Sevi's age form is chosen in bobik.js from the same age group.
+// Age skin of Sevalumo: the same palettes as the main page (skin.css, a copy of the site's skin.css).
+// <html data-skin="kids|teen" data-track="0|1|2|3"> is set from the child's age group: 6-8 butter, 9-11 mint, 12-14 lavender (kids skin),
+// 15-17 navy and brass (teen skin). Palettes are discrete, so there is nothing to animate between them.
+// Keep the track edges (9, 12, 15) in step with the site's index.html head script and trackOf in channel.js.
 var Theme = (function () {
+  var root = document.documentElement;
   var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var THEME_COLORS = ['#FFF4D8', '#E6F8EF', '#EDEBFF', '#0B1B3F']; // the paper of each track, for the browser bar
 
-  // Group id from the profile ('9-11') -> the age whose skin is shown: the first age of the group, so the cabinet matches the main page at that age line
+  // Group id from the profile ('9-11') -> the age used for the skin: the middle of that group
   var GROUP_AGE = { '6-8': 7, '9-11': 10, '12-14': 13, '15-17': 16 };
-  function ageOf(groupId) { return GROUP_AGE[groupId === '14-17' ? '15-17' : groupId] || 6; } // '14-17': old id, read as '15-17'
+  function ageOf(groupId) { return GROUP_AGE[groupId === '14-17' ? '15-17' : groupId] || 7; } // '14-17': old id, read as '15-17'
 
-  // The skin switches whole between tracks (no blending), so a change shows in one frame
-  // (no ../skin.js, e.g. offline or not deployed yet: keep the current skin instead of stopping render() and Sevi)
-  function go(age) { if (typeof Skin !== 'undefined') Skin.set(age); }
+  function trackOf(age) { return age < 9 ? 0 : age < 12 ? 1 : age < 15 ? 2 : 3; }
+  function go(age) {
+    var t = trackOf(age);
+    root.setAttribute('data-skin', age > 14 ? 'teen' : 'kids');
+    root.setAttribute('data-track', String(t));
+    var meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', THEME_COLORS[t]);
+  }
+  function shapes() { return ''; } // the floating shapes are retired: the main page skin has none
 
-  return { ageOf: ageOf, go: go, reduce: reduce };
+  return { ageOf: ageOf, go: go, shapes: shapes, reduce: reduce, trackOf: trackOf };
 })();

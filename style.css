@@ -1,104 +1,103 @@
-/* Sevalumo Cabinet in the skin of the main page (index.html): colours, fonts, radii and buttons come from ../skin.css and ../skin-app.css,
-   and the skin follows the child's age group (js/theme.js -> ../skin.js): 6-8 butter and coral, 9-11 mint and orange, 12-14 lavender and violet,
-   15-17 navy and brass with square corners. Meaning colours (right, wrong, stars) stay fixed. */
+/* Sevalumo Cabinet: the look is the main page skin (skin.css, a copy of the site's skin.css), set on <html data-skin data-track> by js/theme.js
+   from the child's age group (6-8, 9-11, 12-14 = butter, mint, lavender; 15-17 = teen skin). This file is layout and the cabinet's own parts. */
 :root {
     --spring: cubic-bezier(.34, 1.56, .64, 1);
-    --ok: #1E7F58; --bad: #C63A52; --star: #E0A020;
-    --ok-soft: color-mix(in srgb, var(--ok) 16%, var(--card));
-    --bad-soft: color-mix(in srgb, var(--bad) 14%, var(--card));
-    --well: color-mix(in srgb, var(--ink) 7%, var(--card));
+    --bob: 8px; --wd: 600;
+    /* names the cabinet's parts already use, mapped to the skin */
+    --page: var(--paper); --bg: var(--tint); --on-bg: var(--ink); --s1: var(--tint); --s2: var(--ink);
+    --ok: #17824F; --bad: #B3261E; --star: #B7791F; /* 3.6:1 on the white card (non-text contrast) */
+    --ok-soft: color-mix(in srgb, var(--ok) 14%, var(--card));
+    --bad-soft: color-mix(in srgb, var(--bad) 12%, var(--card));
+    --well: color-mix(in srgb, var(--ink) 8%, var(--card));
 }
+html[data-skin="teen"] { --bg: var(--navy); --on-bg: #F3F5F9; --wd: 400; }
 html { scrollbar-color: color-mix(in srgb, var(--ink) 35%, transparent) var(--paper); }
-button { color: inherit; }
-.wrap--wide { max-width: 1240px; }
+button { font: inherit; color: inherit; }
+::selection { background: var(--acc); color: var(--on-acc); }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
-/* ---------- Buttons: the main-page .btn (skin.css) plus the cabinet's extra kinds ---------- */
-.btn--primary { /* the default .btn is already the accent button */ }
-.btn--green { background: var(--ok); color: #fff; }
+/* ---------- Buttons: base, sizes and fills come from skin.css; these are the cabinet's variants ---------- */
+.btn--green, html[data-skin] .btn--green { background: var(--ok); color: #fff; }
 html[data-skin="kids"] .btn--green { box-shadow: 0 4px 0 color-mix(in srgb, var(--ok) 62%, #000); }
-.btn--white { background: var(--card); color: var(--ink); box-shadow: inset 0 0 0 2px var(--ink); }
-html[data-skin="kids"] .btn--white { box-shadow: inset 0 0 0 2px var(--ink); }
-html[data-skin="teen"] .btn--white { background: var(--card); color: var(--ink); }
-.btn--white:hover { background: var(--paper2); }
-.btn--ghost { background: transparent; color: var(--soft); box-shadow: none; text-decoration: underline; }
-html[data-skin="kids"] .btn--ghost { box-shadow: none; }
-html[data-skin="kids"] .btn--ghost:hover, html[data-skin="teen"] .btn--ghost:hover { background: transparent; color: var(--ink); transform: none; }
-.btn { white-space: nowrap; }
+html[data-skin] .btn--ghost { background: transparent; color: var(--soft); box-shadow: none; text-decoration: underline; }
+html[data-skin] .btn--ghost:hover { background: transparent; color: var(--ink); }
 
-/* ---------- Header: the main-page .top bar ---------- */
-.top__links { display: none; margin: 0 0 0 auto; padding: 0; list-style: none; gap: 2px; }
-.top__links a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; font-weight: 700; font-size: .98rem; text-decoration: none; white-space: nowrap; }
-.top__links a:hover { text-decoration: underline; }
-@media (min-width: 900px) { .top__links { display: flex; } .top__links + .chip-profile { margin-left: 8px; } }
-.logo__text { font-weight: 400; }
-.logo__mark svg { display: block; width: 100%; height: 100%; }
-/* Sevi head badge: ink circle, head mark at 80% so the cream helmet reads on cream, mint and yellow headers */
+/* ---------- Header: the main page header (.top), sticky ---------- */
+.nav { position: sticky; top: 0; z-index: 50; }
+.nav__in { gap: 24px; min-height: 68px; }
+.foot { margin-top: 0; }
+.logo__bot { width: 36px; height: 36px; flex: none; }
+.logo__bot svg { display: block; width: 100%; height: 100%; }
+/* Sevi head badge: ink circle, head mark at 80%; a sun-yellow ring on the dark teen header, like the main page */
 .sevi-badge { display: grid; place-items: center; border-radius: 50%; background: #121A2E; flex: none; }
 .sevi-badge img { display: block; width: 80%; height: 80%; }
-/* on the blue and navy headers (ages 12+) a sun-yellow ring separates the badge from the ground */
-html[data-sevi-form="creators"] .sevi-badge, html[data-sevi-form="pros"] .sevi-badge { box-shadow: inset 0 0 0 1.5px #FFCE3A; }
+html[data-skin="teen"] .sevi-badge { box-shadow: inset 0 0 0 1.5px #FFCE3A; }
+.logo__text { font: 600 1.05rem var(--font-d); }
+.nav__links { display: flex; gap: 6px; margin: 0 0 0 auto; padding: 0; list-style: none; font-size: .98rem; font-weight: 700; }
+.nav__links a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 12px; text-decoration: none; white-space: nowrap; }
+.nav__links a:hover { text-decoration: underline; }
 .chip-profile {
-    display: flex; align-items: center; gap: 8px; min-height: 44px; max-width: 220px; margin-left: auto; padding: 4px 16px 4px 4px;
-    border: 0; border-radius: var(--rad-btn); background: var(--ink); color: var(--paper); font-weight: 700; cursor: pointer;
+    display: flex; align-items: center; gap: 8px; min-height: 44px; max-width: 220px; padding: 4px 16px 4px 4px;
+    border: 0; border-radius: var(--rad-btn); background: transparent; color: var(--ink); box-shadow: inset 0 0 0 2px var(--ink); font-weight: 800; cursor: pointer;
 }
-html[data-skin="teen"] .chip-profile { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
 .chip-profile span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.chip-profile__lvl { flex-shrink: 0; padding: 6px 10px; border-radius: var(--rad-btn); background: var(--acc); color: var(--on-acc); font-size: .85rem; font-weight: 800; }
+.chip-profile__lvl { flex-shrink: 0; padding: 6px 12px; border-radius: var(--rad-btn); background: var(--acc); color: var(--on-acc); font-size: .85rem; font-weight: 800; }
 
-/* ---------- Ident band: level, Sevi and the lower third ---------- */
-.ident { overflow: hidden; padding: clamp(14px, 3vw, 34px) 0 clamp(34px, 4vw, 48px); }
+/* ---------- Ident: level, Sevi and the lower third (a dark zone: tint on the kids skin, navy on the teen skin) ---------- */
+.ident { position: relative; overflow: hidden; color: var(--ink); padding: clamp(14px, 3vw, 34px) 0 clamp(28px, 4vw, 44px); }
 .ident__stage { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 20px; }
-.numeral { display: flex; align-items: flex-end; gap: clamp(10px, 2vw, 22px); min-width: 0; }
-.numeral__digits { display: block; line-height: 1; margin: -.1em 0 -.08em; padding: 0 .1em 0 .02em; font-size: clamp(6rem, 15vw, 11rem); font-variant-numeric: tabular-nums; letter-spacing: -.03em; }
-.numeral__unit { padding-bottom: clamp(10px, 2vw, 22px); font-size: clamp(1.1rem, 2vw, 1.6rem); line-height: 1.15; font-weight: 600; }
-.numeral__unit small { display: block; margin-top: 4px; font-size: .7em; font-weight: 600; opacity: .9; font-family: var(--font-b); }
+.numeral { display: flex; align-items: flex-end; gap: clamp(10px, 2vw, 22px); min-width: 0; font-family: var(--font-d); }
+.numeral__digits { display: block; line-height: 1; margin: -.1em 0 -.08em; padding: 0 .1em 0 .02em; font-size: clamp(7rem, 17vw, 13rem); font-weight: var(--wd); font-variant-numeric: tabular-nums; letter-spacing: -.03em; }
+.numeral__unit { padding-bottom: clamp(10px, 2vw, 22px); font-size: clamp(1.1rem, 2vw, 1.6rem); line-height: 1.1; font-weight: 600; }
+.numeral__unit small { display: block; margin-top: 4px; font: 700 .7em var(--font-b); color: var(--soft); }
 .hero__bot { padding: 0; border: 0; background: none; cursor: pointer; animation: bob 2.6s ease-in-out infinite; }
 /* Sevi S7 (js/bobik.js) is <span class="sevi-s7" style="width:100%"><svg viewBox=crop>. In the hero and in every fixed box he is sized
-   by height, so the taller older forms never stretch, overflow or cover text. --sevi-full = full crop height per form. */
+   by height, so the taller older forms never stretch, overflow or cover text. Hero: one art scale for every age, like the main site
+   (DESIGN.md: Sevi changes with the screen, never with age; the forms are a little taller with age). --sevi-full = full crop height. */
 html { --sevi-full: 334; }
 html[data-sevi-form="explorers"] { --sevi-full: 292; }
 html[data-sevi-form="inventors"] { --sevi-full: 312; }
 html[data-sevi-form="pros"] { --sevi-full: 350; }
-.hero__bot .sevi-s7 svg { width: auto; height: calc(var(--sevi-full) * .6px); margin: 0 auto; }
-@keyframes bob { 50% { transform: translateY(-6px); } }
+.hero__bot .sevi-s7 svg { width: auto; height: calc(var(--sevi-full) * .8px); margin: 0 auto; }
+@keyframes bob { 50% { transform: translateY(calc(var(--bob) * -1)); } }
 
-.l3 { position: relative; margin-top: clamp(34px, 4vw, 44px); padding: clamp(20px, 2.4vw, 28px) clamp(18px, 2.6vw, 32px); background: var(--acc); color: var(--on-acc); border-radius: var(--rad); box-shadow: var(--shadow); }
-html[data-skin="teen"] .l3 { background: var(--card); color: var(--ink); border: 1px solid var(--line); border-top: 4px solid var(--brass); }
-.l3__tab { position: absolute; left: clamp(18px, 2.6vw, 32px); top: 0; transform: translateY(-62%); max-width: calc(100% - 36px); overflow: hidden; text-overflow: ellipsis; padding: 5px 14px; border-radius: var(--rad-s); background: var(--ink); color: var(--tint); font-size: .9rem; font-weight: 800; white-space: nowrap; }
-html[data-skin="teen"] .l3__tab { color: var(--navy); }
-.l3 h1 { font-size: clamp(1.8rem, 4vw, 3rem); overflow-wrap: anywhere; }
+.l3 { position: relative; margin-top: clamp(34px, 4vw, 44px); padding: clamp(20px, 2.4vw, 28px) clamp(18px, 2.6vw, 32px); background: var(--card); color: var(--ink); border-radius: var(--rad); box-shadow: var(--shadow); }
+html[data-skin="teen"] .l3 { border: 1px solid var(--line); border-top: 4px solid var(--brass); }
+.l3__tab { position: absolute; left: clamp(18px, 2.6vw, 32px); top: 0; transform: translateY(-62%); max-width: calc(100% - 36px); overflow: hidden; text-overflow: ellipsis; padding: 5px 14px; border-radius: var(--rad-btn); background: var(--ink); color: var(--paper); font-size: .9rem; font-weight: 800; white-space: nowrap; }
+html[data-skin="teen"] .l3__tab { background: var(--brass); color: var(--navy); }
+.l3 h1 { font-size: clamp(1.8rem, 4vw, 3rem); line-height: 1.05; overflow-wrap: anywhere; }
 .xpbar { display: flex; align-items: center; gap: 14px; max-width: 620px; margin-top: 16px; }
-.xpbar__track { flex: 1; height: 16px; border-radius: var(--rad-pill); background: color-mix(in srgb, var(--ink) 18%, transparent); overflow: hidden; }
-html[data-skin="kids"] .xpbar__track { background: color-mix(in srgb, var(--on-acc) 18%, transparent); }
-.xpbar__fill { height: 100%; width: 0; border-radius: inherit; background: var(--on-acc); transition: width 1s var(--spring); }
-html[data-skin="teen"] .xpbar__fill { background: var(--brass); }
+.xpbar__track { flex: 1; height: 14px; border-radius: var(--rad-btn); background: var(--well); overflow: hidden; }
+.xpbar__fill { height: 100%; width: 0; border-radius: inherit; background: var(--acc); transition: width 1s var(--spring); }
 .xpbar__text { flex-shrink: 0; font-weight: 800; font-variant-numeric: tabular-nums; }
 .hero__chips { display: flex; flex-wrap: wrap; gap: 8px 22px; margin: 14px 0 0; padding: 0; list-style: none; font-weight: 700; }
 .hero__chips li[hidden] { display: none; }
 .hero__chips b { font-size: 1.25rem; font-weight: 800; font-variant-numeric: tabular-nums; margin-right: 4px; }
 
 /* ---------- Layout ---------- */
-.layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 36px; align-items: start; max-width: 1240px; margin: 0 auto; padding: 18px var(--gut) 72px; }
-.layout__side { position: sticky; top: 24px; display: grid; gap: 20px; padding-top: 30px; }
+.layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 36px; align-items: start; max-width: var(--maxw); margin: 0 auto; padding: 18px var(--gut) 72px; }
+.layout__side { position: sticky; top: 88px; display: grid; gap: 20px; padding-top: 30px; }
 .section-head { margin: 52px 0 22px; }
-.section-head h2 { font-size: clamp(1.7rem, 3.6vw, 2.6rem); }
+.section-head h2 { font-size: clamp(1.7rem, 3.4vw, 2.6rem); }
 html[data-skin="teen"] .section-head h2 { font-size: clamp(1.9rem, 3.8vw, 2.9rem); }
 .section-head p { margin-top: 8px; color: var(--soft); }
-.count { display: inline-block; vertical-align: middle; margin-left: 4px; padding: 2px 12px; border-radius: var(--rad-pill); background: var(--ink); color: var(--paper); font-family: var(--font-b); font-size: 1rem; font-weight: 800; letter-spacing: 0; }
+.count { display: inline-block; vertical-align: middle; margin-left: 4px; padding: 2px 12px; border-radius: var(--rad-btn); background: var(--ink); color: var(--paper); font: 800 1rem var(--font-b); letter-spacing: 0; }
 .card h2 { margin-bottom: 14px; font-size: 1.3rem; }
+/* cabinet panels share the skin card look */
+.stat, .course, .site-course, .badge, .course-empty { background: var(--card); color: var(--ink); border-radius: var(--rad); box-shadow: var(--shadow); }
+html[data-skin="teen"] :is(.stat, .course, .site-course, .badge, .course-empty) { border: 1px solid var(--line); border-top: 4px solid var(--ink); }
 
 /* Stats */
 .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; padding-top: 30px; }
-.stat { padding: 18px 20px; border-radius: var(--rad-s); background: var(--card); box-shadow: var(--shadow); }
-.stat__value { display: block; font-family: var(--font-d); font-weight: 600; font-size: 2rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.stat { padding: 18px 20px; }
+.stat__value { display: block; font-weight: var(--wd); font-size: 2rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
 .stat__label { color: var(--soft); font-weight: 600; font-size: .92rem; }
 
 /* ---------- Courses ---------- */
 .courses { display: grid; gap: 20px; }
-.course { padding: 22px; border-radius: var(--rad); background: var(--card); box-shadow: var(--shadow); }
+.course { padding: 22px; }
 .course-empty { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px 20px; padding: 22px; border-radius: var(--rad); background: color-mix(in oklch, var(--acc) 14%, var(--card)); box-shadow: var(--shadow); }
 .course-empty p { margin: 0; max-width: 36em; font-weight: 600; }
-.course-empty .btn { background: var(--ink); color: var(--paper); }
 .link-btn { display: inline-flex; align-items: center; min-height: 44px; margin-left: 6px; padding: 4px 2px; border: 0; background: none; color: var(--ink); font: inherit; font-weight: 700; text-decoration: underline; text-underline-offset: .2em; cursor: pointer; }
 .site-courses { display: grid; gap: 20px; grid-template-columns: minmax(0, 1fr); }
 @media (min-width: 760px) { .site-courses { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
@@ -110,7 +109,7 @@ html[data-skin="teen"] .section-head h2 { font-size: clamp(1.9rem, 3.8vw, 2.9rem
 .site-courses__all .link-btn { margin-left: 0; display: inline-flex; align-items: center; min-height: 44px; }
 .course.is-complete { box-shadow: 0 0 0 3px var(--acc), var(--shadow); }
 .course__head { display: flex; align-items: center; gap: 18px; }
-.course__thumb { flex-shrink: 0; display: grid; place-items: center; width: 96px; height: 96px; border-radius: var(--rad); background: color-mix(in oklch, var(--C, var(--acc)) 34%, var(--card)); }
+.course__thumb { flex-shrink: 0; display: grid; place-items: center; width: 96px; height: 96px; border-radius: var(--rad-s); background: color-mix(in oklch, var(--C, var(--acc)) 34%, var(--card)); }
 .course__thumb .sevi-s7 svg { width: auto; height: 82px; margin: 0 auto; }
 .course__info { flex: 1; min-width: 0; }
 .course__age { font-weight: 700; font-size: .85rem; color: var(--soft); }
@@ -133,13 +132,13 @@ html[data-skin="teen"] .section-head h2 { font-size: clamp(1.9rem, 3.8vw, 2.9rem
 .node.is-locked .node__btn { background: var(--well); color: var(--soft); cursor: not-allowed; font-size: 1.15rem; }
 @media (hover: hover) { .node:not(.is-locked) .node__btn:hover { transform: scale(1.08); } }
 .node__stars { margin-top: 8px; letter-spacing: 2px; font-size: 1rem; }
-.node__stars i, .result__stars i { font-style: normal; color: color-mix(in oklch, var(--ink) 18%, transparent); }
+.node__stars i, .result__stars i { font-style: normal; color: color-mix(in oklch, var(--ink) 30%, transparent); }
 .node__stars i.on, .result__stars i.on { color: var(--star); }
 .node__title { margin-top: 2px; font-weight: 600; font-size: .92rem; color: var(--soft); }
 
 /* ---------- Badges ---------- */
 .badges { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
-.badge { padding: 18px 10px; border-radius: var(--rad-s); background: var(--card); box-shadow: var(--shadow); text-align: center; }
+.badge { padding: 18px 10px; text-align: center; }
 .badge__icon { display: grid; place-items: center; width: 64px; height: 64px; margin: 0 auto 10px; border-radius: var(--rad); background: color-mix(in oklch, var(--acc) 30%, var(--card)); font-size: 2rem; }
 .badge h3 { font-size: 1rem; }
 .badge p { margin-top: 4px; font-size: .85rem; line-height: 1.35; color: var(--soft); }
@@ -155,14 +154,14 @@ html[data-skin="teen"] .section-head h2 { font-size: clamp(1.9rem, 3.8vw, 2.9rem
 .ring__fill { stroke: var(--acc); stroke-linecap: round; transition: stroke-dashoffset 1s var(--ease); }
 .daily.is-done .ring__fill { stroke: var(--ok); }
 .ring__label { position: absolute; inset: 0; display: grid; place-content: center; }
-.ring__label b { font-size: 2.3rem; line-height: 1; }
+.ring__label b { font-size: 2.3rem; line-height: 1; font-weight: var(--wd); }
 .ring__label span { font-weight: 600; color: var(--soft); font-size: .92rem; }
 .daily__note { margin-top: 12px; font-weight: 600; color: var(--soft); }
 
 .week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; align-items: end; }
 .week__col { display: flex; flex-direction: column; align-items: center; gap: 4px; }
 .week__xp { min-height: 18px; font-size: .8rem; font-weight: 700; color: var(--soft); }
-.week__bar { display: flex; align-items: flex-end; width: 100%; height: 90px; border-radius: var(--rad-xs); background: var(--well); overflow: hidden; }
+.week__bar { display: flex; align-items: flex-end; width: 100%; height: 90px; border-radius: var(--rad-s); background: var(--well); overflow: hidden; }
 .week__bar div { width: 100%; border-radius: inherit; background: color-mix(in oklch, var(--acc) 55%, var(--card)); transition: height .8s var(--ease); }
 .week__col.is-today .week__bar div { background: var(--acc); }
 .week__day { font-size: .8rem; font-weight: 700; color: var(--soft); }
@@ -176,24 +175,25 @@ html[data-skin="teen"] .section-head h2 { font-size: clamp(1.9rem, 3.8vw, 2.9rem
 .settings h2 { text-align: center; }
 .settings__actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 18px; }
 
-.foot__in p { opacity: .95; }
 
 /* ---------- Welcome dialog ---------- */
 .modal { width: min(440px, calc(100% - 32px)); max-height: calc(100dvh - 16px); padding: 0; border: 0; background: transparent; overflow-y: auto; color: var(--ink); }
 .modal::backdrop, .quiz::backdrop { background: color-mix(in oklch, var(--ink) 50%, transparent); backdrop-filter: blur(4px); }
 .modal__box { position: relative; margin-top: 76px; padding: 66px 26px 26px; border-radius: var(--rad); background: var(--card); text-align: center; }
+html[data-skin="teen"] .modal__box { border: 1px solid var(--ink); border-top-width: 4px; }
 .modal__bot { position: absolute; top: -76px; left: 50%; width: 140px; transform: translateX(-50%); }
 .modal__bot .sevi-s7 svg { width: auto; height: 136px; margin: 0 auto; }
-.modal__box h2 { font-size: 1.8rem; }
+.modal__box h2 { font-size: 1.8rem; font-weight: var(--wd); }
 .modal__box > p { margin: 6px 0 18px; color: var(--soft); }
-.field-label { display: block; margin-bottom: 6px; font-weight: 800; font-size: .95rem; text-align: left; }
+.field { margin-bottom: 16px; text-align: left; }
+.field span, .field-label { display: block; font-weight: 800; font-size: .95rem; text-align: left; }
 
 /* ---------- Quiz ---------- */
 .quiz { width: min(720px, calc(100% - 32px)); max-height: calc(100dvh - 32px); padding: 0; border: 0; border-radius: var(--rad); background: var(--card); color: var(--ink); overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; }
 .quiz[open] { animation: pop .35s var(--spring); }
 .quiz__inner { padding: 22px 28px 28px; }
 .quiz__top { display: flex; align-items: center; gap: 14px; }
-.quiz__close { flex-shrink: 0; width: 44px; height: 44px; border: 0; border-radius: var(--rad-xs); background: var(--well); font-size: 1.1rem; cursor: pointer; }
+.quiz__close { flex-shrink: 0; width: 44px; height: 44px; border: 0; border-radius: var(--rad-s); background: var(--well); font-size: 1.1rem; cursor: pointer; }
 .quiz__progress { flex: 1; display: flex; gap: 6px; }
 .quiz__progress span { flex: 1; height: 12px; border-radius: 999px; background: var(--well); transition: background .3s ease; }
 .quiz__progress span.cur { background: color-mix(in oklch, var(--acc) 55%, var(--card)); }
@@ -205,8 +205,8 @@ html[data-skin="teen"] .section-head h2 { font-size: clamp(1.9rem, 3.8vw, 2.9rem
 .quiz__ask { display: flex; align-items: center; gap: 18px; margin: 10px 0 22px; }
 .quiz__bot { flex-shrink: 0; width: 110px; }
 .quiz__bot .sevi-s7 svg { width: auto; height: 110px; margin: 0 auto; }
-.quiz__q { position: relative; flex: 1; padding: 18px 22px; border-radius: var(--rad-s); background: var(--tint); color: var(--ink); font-size: clamp(1.25rem, 2.6vw, 1.6rem); }
-.quiz__q::before { content: ''; position: absolute; left: -12px; top: 50%; margin-top: -10px; border: 10px solid transparent; border-right-color: var(--tint); border-left: 0; }
+.quiz__q { position: relative; flex: 1; padding: 18px 22px; border-radius: var(--rad-s); background: var(--bg); color: var(--on-bg); font-size: clamp(1.25rem, 2.6vw, 1.6rem); }
+.quiz__q::before { content: ''; position: absolute; left: -12px; top: 50%; margin-top: -10px; border: 10px solid transparent; border-right-color: var(--bg); border-left: 0; }
 
 .options { display: grid; gap: 12px; }
 .option {
@@ -218,14 +218,14 @@ html[data-skin="teen"] .section-head h2 { font-size: clamp(1.9rem, 3.8vw, 2.9rem
 @media (hover: hover) { .option:not(:disabled):hover { border-color: var(--ink); background: var(--well); } }
 .option:not(:disabled):active { transform: translateY(2px); }
 .option:disabled { cursor: default; }
-.option__key { display: grid; place-items: center; flex-shrink: 0; width: 34px; height: 34px; border-radius: var(--rad-xs); background: var(--well); font-weight: 800; font-size: 1rem; color: var(--soft); }
+.option__key { display: grid; place-items: center; flex-shrink: 0; width: 34px; height: 34px; border-radius: var(--rad-s); background: var(--well); font-weight: 800; font-size: 1rem; color: var(--soft); }
 .option.is-correct { border-color: var(--ok); background: var(--ok-soft); animation: bounce .4s ease; }
 .option.is-correct .option__key { background: var(--ok); color: #fff; }
 .option.is-wrong { border-color: var(--bad); background: var(--bad-soft); animation: shake .4s ease; }
 .option.is-wrong .option__key { background: var(--bad); color: #fff; }
 .option:disabled:not(.is-correct):not(.is-wrong) { opacity: .55; }
 
-.feedback { display: none; align-items: center; gap: 18px; margin-top: 20px; padding: 18px 20px; border-radius: var(--rad-s); }
+.feedback { display: none; align-items: center; gap: 18px; margin-top: 20px; padding: 18px 20px; border-radius: var(--rad); }
 .feedback.is-shown { display: flex; animation: rise .3s ease; }
 .feedback.is-ok { background: var(--ok-soft); }
 .feedback.is-bad { background: var(--bad-soft); }
@@ -245,10 +245,10 @@ html[data-skin="teen"] .section-head h2 { font-size: clamp(1.9rem, 3.8vw, 2.9rem
 .result__stars i { display: inline-block; animation: starIn .5s var(--spring) both; }
 .result__stars i:nth-child(2) { animation-delay: .15s; }
 .result__stars i:nth-child(3) { animation-delay: .3s; }
-.result h2 { font-size: 2rem; }
+.result h2 { font-size: 2rem; font-weight: var(--wd); }
 .result__sub { margin-top: 6px; color: var(--soft); font-weight: 600; }
-.result__xp { display: inline-block; margin: 18px 0 10px; padding: 10px 24px; border-radius: var(--rad-s); background: var(--tint); color: var(--ink); font-weight: 700; font-size: 1.25rem; }
-.result__xp span { font-size: 2.1rem; }
+.result__xp { display: inline-block; margin: 18px 0 10px; padding: 10px 24px; border-radius: var(--rad-s); background: var(--bg); color: var(--on-bg); font-weight: 700; font-size: 1.25rem; }
+.result__xp span { font-size: 2.1rem; font-weight: var(--wd); }
 .breakdown { max-width: 360px; margin: 6px auto 0; padding: 0; list-style: none; text-align: left; }
 .breakdown li { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--line); font-weight: 600; }
 .breakdown li.muted { color: var(--soft); }
@@ -288,18 +288,19 @@ html[data-skin="teen"] .section-head h2 { font-size: clamp(1.9rem, 3.8vw, 2.9rem
     .layout__side { position: static; grid-template-columns: repeat(2, 1fr); margin-top: 24px; padding-top: 0; }
 }
 @media (max-width: 860px) {
+    .nav__links li:not(:last-child) { display: none; }
 }
 @media (max-width: 760px) {
     body { font-size: 1rem; }
-    .top__in { gap: 12px; }
-    .top__links { display: none; }
+    .nav__in { gap: 12px; }
+    .nav__links { display: none; }
     .chip-profile { margin-left: auto; max-width: 160px; }
     .ident__stage { grid-template-columns: minmax(0, 1fr) auto; }
     .numeral { flex-direction: column; align-items: flex-start; gap: 4px; }
     .numeral__unit { padding-bottom: 0; }
     .numeral__digits { font-size: clamp(5.5rem, 30vw, 8rem); }
     .hero__bot .sevi-s7 svg { height: calc(var(--sevi-full) * .44px); }
-
+    
     .layout { padding: 0 16px 40px; }
     .layout__side { grid-template-columns: 1fr; }
     .stats { grid-template-columns: repeat(2, 1fr); gap: 12px; }
@@ -325,7 +326,7 @@ html[data-skin="teen"] .section-head h2 { font-size: clamp(1.9rem, 3.8vw, 2.9rem
     .quiz__bot { width: 90px; }
     .quiz__bot .sevi-s7 svg { height: 90px; }
     .quiz__q { padding: 14px 16px; }
-    .quiz__q::before { left: 50%; top: -12px; margin: 0 0 0 -10px; border: 10px solid transparent; border-bottom-color: var(--tint); border-top: 0; }
+    .quiz__q::before { left: 50%; top: -12px; margin: 0 0 0 -10px; border: 10px solid transparent; border-bottom-color: var(--bg); border-top: 0; }
     .option { min-height: 56px; font-size: 1.05rem; }
     .feedback { position: sticky; bottom: 0; flex-direction: column; align-items: stretch; margin: auto -16px -20px; padding: 16px 16px 20px; border-radius: var(--rad) var(--rad) 0 0; }
     .feedback .btn { width: 100%; }
@@ -334,12 +335,14 @@ html[data-skin="teen"] .section-head h2 { font-size: clamp(1.9rem, 3.8vw, 2.9rem
 }
 /* The wordmark is wider than the old text logo: from 480px the header shows Sevi and the wordmark only */
 @media (max-width: 480px) {
+    .nav .logo__word { font-size: 28px; }
     .logo__text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 }
 /* Under 340px the profile button no longer fits beside the wordmark: Sevi alone is the mark there (the link keeps its name) */
 @media (max-width: 360px) {
-    .top__in { gap: 10px; }
+    .nav__in { gap: 10px; }
+    .nav .logo__word { font-size: 24px; }
 }
 @media (max-width: 340px) {
-    .top .logo__word { display: none; }
+    .nav .logo__word { display: none; }
 }
